@@ -5,8 +5,7 @@
 #include <sys/times.h>
 #include "scheme.h"
 
-int test_one(Scheme* sch, int rec_size, int red_size,
-        clock_t *s_tot, clock_t *son_tot, clock_t *v_tot)
+int test_one(Scheme* sch, clock_t *s_tot, clock_t *son_tot, clock_t *v_tot)
 {
     int ret;
     clock_t c0,c1,c2,c3,c4,c5;
@@ -23,7 +22,7 @@ int test_one(Scheme* sch, int rec_size, int red_size,
 
     c2 = clock();
     times(&t2);
-    ret = Scheme_sign_online(sch, msg, rec_size);
+    ret = Scheme_sign_online(sch, msg);
     times(&t3);
     c3 = clock();
 
@@ -50,11 +49,9 @@ int test_one(Scheme* sch, int rec_size, int red_size,
     return 0;
 }
 
-int test(Scheme* sch, int sec_size, int rec_size, int red_size, int sign_count)
+int test(Scheme* sch, int sign_count)
 {
     int ret;
-    ret = Scheme_gen_key(sch, sec_size);
-    assert(ret >= 0);
     
     int i;
     clock_t sign_total = 0;
@@ -62,9 +59,7 @@ int test(Scheme* sch, int sec_size, int rec_size, int red_size, int sign_count)
     clock_t vrfy_total = 0;
     for (i=0; i<sign_count; i++)
     {
-        ret = test_one(sch,
-                rec_size, red_size,
-                &sign_total, &sign_online_total, &vrfy_total);
+        ret = test_one(sch, &sign_total, &sign_online_total, &vrfy_total);
         assert(ret >= 0);
     }
 

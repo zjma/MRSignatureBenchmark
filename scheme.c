@@ -12,11 +12,11 @@ struct Scheme
     void*           inner;
 };
 
-Scheme *Scheme_new(SchemeMethods *methods)
+Scheme *Scheme_new(SchemeMethods *methods, int sec_size, int rec_len, int red_len)
 {
     Scheme *ret = malloc(sizeof(Scheme));
     ret->imp = methods;
-    void *inner = methods->new_inner();
+    void *inner = methods->new_inner(sec_size, rec_len, red_len);
     if (inner == NULL) goto err;
     ret->inner = inner;
     return ret;
@@ -33,12 +33,6 @@ void Scheme_free(Scheme *sch)
     free(sch);
 }
 
-int Scheme_gen_key(Scheme *sch, int sec_size)
-{
-    assert(sch != NULL);
-    return sch->imp->genkey(sch->inner, sec_size);
-}
-
 char *Scheme_get_name(Scheme *sch)
 {
     return sch->imp->get_name();
@@ -50,10 +44,10 @@ int Scheme_sign_offline(Scheme *sch)
     return sch->imp->sign_offline(sch->inner);
 }
 
-int Scheme_sign_online(Scheme *sch, char *msg, int len)
+int Scheme_sign_online(Scheme *sch, char *msg)
 {
     assert(sch != NULL);
-    return sch->imp->sign_online(sch->inner, msg, len);
+    return sch->imp->sign_online(sch->inner, msg);
 }
 
 int Scheme_verify(Scheme *sch)
@@ -66,17 +60,15 @@ SchemeMethods OmegaMethods = {
     .new_inner = Omega_new_inner,
     .free_inner = Omega_free_inner,
     .get_name = Omega_get_name,
-    .genkey = Omega_genkey,
     .sign_offline = Omega_sign_offline,
     .sign_online = Omega_sign_online,
     .vrfy = Omega_vrfy,
 };
 
-SchemeMethods Methods = {
+SchemeMethods AOMethods = {
     .new_inner = AO_new_inner,
     .free_inner = AO_free_inner,
     .get_name = AO_get_name,
-    .genkey = AO_genkey,
     .sign_offline = AO_sign_offline,
     .sign_online = AO_sign_online,
     .vrfy = AO_vrfy,
@@ -87,7 +79,6 @@ SchemeMethods PVMethods = {
     .new_inner = PV_new_inner,
     .free_inner = PV_free_inner,
     .get_name = PV_get_name,
-    .genkey = PV_genkey,
     .sign_offline = PV_sign_offline,
     .sign_online = PV_sign_online,
     .vrfy = PV_vrfy,

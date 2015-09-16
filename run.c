@@ -11,8 +11,9 @@ int main(int argc, char **argv)
     int i;
 
     int sec = 1024;
-    int rec = 150;
-    int schi = SCHEME_OMEGA;
+    int rec = 512;
+    int red = 512;
+    SchemeMethods *schm = &OmegaMethods;
     int sigcount = 1000;
     
     for (i=1; i<argc; i++)
@@ -30,6 +31,12 @@ int main(int argc, char **argv)
             i++;
             rec = atoi(argv[i]);
         }
+        else if (strcmp(argv[i], "-redlen") == 0)
+        {
+            assert(i<argc-1);
+            i++;
+            red = atoi(argv[i]);
+        }
         else if (strcmp(argv[i], "-sigcount") == 0)
         {
             assert(i<argc-1);
@@ -40,21 +47,19 @@ int main(int argc, char **argv)
         else
         {
             if (strcmp(argv[i], "ao") == 0)
-                schi = SCHEME_AO;
+                schm = &AOMethods;
             else if (strcmp(argv[i], "pv") == 0)
-                schi = SCHEME_PV;
+                schm = &PVMethods;
             else if (strcmp(argv[i], "omega") == 0)
-                schi = SCHEME_OMEGA;
+                schm = &OmegaMethods;
             else
                 assert(0);
         }
         
     }
-    Scheme *sch = Scheme_new(&OmegaMethods);
+    Scheme *sch = Scheme_new(schm, sec, rec, red);
     assert(sch != NULL);
     
-    int red = rec;
-
     test(sch, sec, rec, red, sigcount);
 }
 
