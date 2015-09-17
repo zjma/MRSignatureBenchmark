@@ -36,12 +36,14 @@ int test_one(Scheme* sch, clock_t *s_tot, clock_t *son_tot, clock_t *v_tot)
     
     assert(ret >= 0);
     
+    /*
     c0 = t0.tms_utime;
     c1 = t1.tms_utime;
     c2 = t2.tms_utime;
     c3 = t3.tms_utime;
     c4 = t4.tms_utime;
     c5 = t5.tms_utime;
+    */
     *s_tot += c1-c0+c3-c2;
     *son_tot += c3-c2;
     *v_tot += c5-c4;
@@ -57,6 +59,15 @@ int test(Scheme* sch, int sign_count)
     clock_t sign_total = 0;
     clock_t sign_online_total = 0;
     clock_t vrfy_total = 0;
+
+    /* Warm up */
+    ret = test_one(sch, &sign_total, &sign_online_total, &vrfy_total);
+    assert(ret >= 0);
+    
+    sign_total = 0;
+    sign_online_total = 0;
+    vrfy_total = 0;
+
     for (i=0; i<sign_count; i++)
     {
         ret = test_one(sch, &sign_total, &sign_online_total, &vrfy_total);

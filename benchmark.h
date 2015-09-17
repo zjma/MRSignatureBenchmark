@@ -3,8 +3,6 @@
 
 #include "scheme.h"
 
-int test(Scheme* sch,
-        int sec_size, int rec_size, int red_size,
-        int sign_count);
+int test(Scheme* sch, int sign_count);
 
 #endif

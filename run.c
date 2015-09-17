@@ -5,6 +5,7 @@
 
 #include "scheme.h"
 #include "benchmark.h"
+#include "locals.h"
 
 int main(int argc, char **argv)
 {
@@ -25,13 +26,13 @@ int main(int argc, char **argv)
             sec = atoi(argv[i]);
             assert(sec == 1024 || sec == 2048);
         }
-        else if (strcmp(argv[i], "-reclen") == 0)
+        else if (strcmp(argv[i], "-rec") == 0)
         {
             assert(i<argc-1);
             i++;
             rec = atoi(argv[i]);
         }
-        else if (strcmp(argv[i], "-redlen") == 0)
+        else if (strcmp(argv[i], "-red") == 0)
         {
             assert(i<argc-1);
             i++;
@@ -57,9 +58,12 @@ int main(int argc, char **argv)
         }
         
     }
+
+    InitCrypt();
+
     Scheme *sch = Scheme_new(schm, sec, rec, red);
     assert(sch != NULL);
     
-    test(sch, sec, rec, red, sigcount);
+    test(sch, sigcount);
 }
 

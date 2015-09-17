@@ -5,13 +5,11 @@
 #include <assert.h>
 
 #include "defaults.h"
+#include "locals.h"
 
 typedef struct OmegaInner OmegaInner;
 struct OmegaInner
 {
-    /* Hasher */
-    EVP_MD_CTX *hasher;
-    
     /* Scheme info */
     int bytelen_rec;
     int bytelen_red;
@@ -58,7 +56,7 @@ struct OmegaInner
 };
 
 
-void *Omega_new_inner(int sec_size, int bytelen_rec, int bytelen_red)
+void *Omega_new_inner(int sec_size, int bitlen_rec, int bitlen_red)
 {
     int sizei = 0;
     BIGNUM *rbn;
@@ -67,8 +65,8 @@ void *Omega_new_inner(int sec_size, int bytelen_rec, int bytelen_red)
     if (ret == NULL) return NULL;
     
     /* Remeber params */
-    ret->bytelen_rec = bytelen_rec;
-    ret->bytelen_red = bytelen_red;
+    ret->bytelen_rec = bitlen_rec/8;
+    ret->bytelen_red = bitlen_red/8;
 
     switch (sec_size)
     {
@@ -81,9 +79,9 @@ void *Omega_new_inner(int sec_size, int bytelen_rec, int bytelen_red)
             break;
         case 2048:
             ret->bitlen_p = 2048;
-            ret->bitlen_q = 224;
+            ret->bitlen_q = 256;
             ret->bytelen_p = 256;
-            ret->bytelen_q = 28;
+            ret->bytelen_q = 32;
             sizei = 1;
             break;
         default:
@@ -92,22 +90,8 @@ void *Omega_new_inner(int sec_size, int bytelen_rec, int bytelen_red)
     
     int r;
 
-    /* Generate key pairs */
-    rbn = BN_bin2bn(_P[sizei], ret->bytelen_p, ret->p);
-    assert(rbn != NULL);
-    rbn = BN_bin2bn(_G[sizei], ret->bytelen_p, ret->g);
-    assert(rbn != NULL);
-    rbn = BN_bin2bn(_Q[sizei], ret->bytelen_q, ret->q);
-    assert(rbn != NULL);
-    r = BN_rand_range(ret->w, ret->q);
-    assert(r==1);
-    r = BN_mod_exp(ret->h, ret->g, ret->w, ret->p, ret->bnctx);
-    assert(r==1);
-    
-    /* Init vars */
+   /* Init vars */
     int flag = 0;
-    if ((ret->hasher = EVP_MD_CTX_create()) == NULL) flag = 1;
-
     if ((ret->g = BN_new()) == NULL) flag = 1;
     if ((ret->p = BN_new()) == NULL) flag = 1;
     if ((ret->q = BN_new()) == NULL) flag = 1;
@@ -143,9 +127,21 @@ void *Omega_new_inner(int sec_size, int bytelen_rec, int bytelen_red)
 
     if ((ret->bnctx = BN_CTX_new()) == NULL) flag = 1;
     if (flag == 1) goto err;
+
+    /* Generate key pairs */
+    rbn = BN_bin2bn(_P[sizei], ret->bytelen_p, ret->p);
+    assert(rbn != NULL);
+    rbn = BN_bin2bn(_G[sizei], ret->bytelen_p, ret->g);
+    assert(rbn != NULL);
+    rbn = BN_bin2bn(_Q[sizei], ret->bytelen_q, ret->q);
+    assert(rbn != NULL);
+    r = BN_rand_range(ret->w, ret->q);
+    assert(r==1);
+    r = BN_mod_exp(ret->h, ret->g, ret->w, ret->p, ret->bnctx);
+    assert(r==1);
+    
     return ret;
 err:
-    EVP_MD_CTX_destroy(ret->hasher);
     BN_free(ret->g);
     BN_free(ret->p);
     BN_free(ret->q);
@@ -188,9 +184,6 @@ void Omega_free_inner(void* inner)
     assert(inner!=NULL);
     OmegaInner *self = (OmegaInner*)inner;
     
-    EVP_MD_CTX_cleanup(self->hasher);
-    EVP_MD_CTX_destroy(self->hasher);
-
     BN_free(self->g);
     BN_free(self->p);
     BN_free(self->q);
@@ -256,8 +249,8 @@ int Omega_sign_offline(void *inner)
     
     /* Convert a into bytes */
     int bytelen_a = BN_num_bytes(self->a);
-    memset(self->a_bytes, 0, self->bytelen_p+1);
     BN_bn2bin(self->a, &self->a_bytes[self->bytelen_p]);
+    BN2LenBin(self->a, self->a_bytes, self->bytelen_p);
     
     /* Compute h0 = H0(a) = H(a||0x00) */
     self->a_bytes[self->bytelen_p] = 0x00;
@@ -286,13 +279,12 @@ int Omega_sign_offline(void *inner)
 }
 
 
-int Omega_sign_online(void *inner, char *msg, int msglen)
+int Omega_sign_online(void *inner, char *msg)
 {
     assert(inner!=NULL);
     OmegaInner *self = (OmegaInner*)inner;
     
     int ret;
-    assert(msglen==self->bytelen_rec);
     /* compute d1 = h1 xor m */
     int i;
     for (i=0; i<self->bytelen_rec; i++)
@@ -310,7 +302,7 @@ int Omega_sign_online(void *inner, char *msg, int msglen)
     
     /*Convert z to z_bytes */
     ret = BN2LenBin(self->z, self->z_bytes, self->bytelen_q);
-    assert(ret==1);
+    assert(ret==0);
     
     return 0;
 }
@@ -328,6 +320,10 @@ int Omega_vrfy(void *inner)
     assert(rbn!=NULL);
     rbn = BN_bin2bn(self->d1, self->bytelen_q, self->v_e1);
     assert(rbn!=NULL);
+    
+    assert(BN_cmp(self->v_e0, self->e0)==0);
+    assert(BN_cmp(self->v_e1, self->e1)==0);
+
 
     /* Compute a~=g^z*h^(e0+e1) */
     ret = BN_mod_exp(self->gz, self->g, self->z, self->p, self->bnctx);
@@ -336,11 +332,19 @@ int Omega_vrfy(void *inner)
     assert(ret==1);
     ret = BN_mod_exp(self->he0e1, self->h, self->e0e1, self->p, self->bnctx);
     assert(ret==1);
-    ret = BN_mod_mul(self->v_a, self->gz, self->he0e1, self->q, self->bnctx);
+    ret = BN_mod_mul(self->v_a, self->gz, self->he0e1, self->p, self->bnctx);
     assert(ret==1);
+    
+    assert(BN_cmp(self->v_a, self->a)==0);
 
     /* Convert a~ to a~_bytes */
     BN2LenBin(self->v_a, self->v_a_bytes, self->bytelen_p);
+    
+    {
+        int i;
+        for (i=0; i<self->bytelen_p; i++)
+            assert(self->v_a_bytes[i]==self->a_bytes[i]);
+    }
 
     /* Compute h0~=H(a~bytes||00) */
     self->v_a_bytes[self->bytelen_p] = 0x00;
