@@ -3,6 +3,10 @@
 
 #include <openssl/bn.h>
 
+extern char *_Q[2];
+extern char *_P[2];
+extern char *_G[2];
+
 void *Omega_new_inner();
 void Omega_free_inner(void* inner);
 char *Omega_get_name();

@@ -4,7 +4,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "defaults.h"
 #include "locals.h"
 
 typedef struct OmegaInner OmegaInner;
