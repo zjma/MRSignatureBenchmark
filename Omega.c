@@ -248,7 +248,8 @@ int Omega_sign_offline(void *inner)
     
     /* Convert a into bytes */
     int bytelen_a = BN_num_bytes(self->a);
-    BN_bn2bin(self->a, &self->a_bytes[self->bytelen_p]);
+    assert(bytelen_a <= self->bytelen_p);
+
     BN2LenBin(self->a, self->a_bytes, self->bytelen_p);
     
     /* Compute h0 = H0(a) = H(a||0x00) */
