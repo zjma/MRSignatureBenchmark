@@ -18,7 +18,8 @@ int DoSHA256(EVP_MD_CTX *hasher, const char *msg, int msglen, char *dst)
 int VHash(const char *msg, int msglen, char *dst, int dstlen)
 {
     //TODO
-    memset(dst, 0, dstlen);
+    assert(dstlen <= msglen);
+    memcpy(dst, msg, dstlen);
     return 0;
 }
 
