@@ -42,6 +42,8 @@ int DoAES256CBC(char *key,
 
 int VHash(const char *msg, int msglen, char *dst, int dstlen);
 
+int BinXor(const char *s0, const char *s1, char *d, int len);
+
 int InitCrypt();
 
 int CleanCrypt();

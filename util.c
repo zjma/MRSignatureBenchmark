@@ -96,3 +96,16 @@ int BN2LenBin(BIGNUM *bn, char *buf, int len)
     memset(buf, 0, len-bytelen_bn);
     return 0;
 }
+
+
+int BinXor(const char *s0, const char *s1, char *d, int len)
+{
+    assert(len>=0);
+    assert(s0!=NULL);
+    assert(s1!=NULL);
+    assert(d!=NULL);
+    char *dend = d+len;
+    for (; d<dend; d++)
+        *d = (*(s0++)) ^ (*(s1++));
+    return 0;
+}

@@ -99,7 +99,7 @@ void *Omega_new_inner(int sec_size, int bitlen_rec, int bitlen_red)
 
     if ((ret->r = BN_new()) == NULL) flag = 1;
     if ((ret->a = BN_new()) == NULL) flag = 1;
-    if ((ret->a_bytes = malloc(ret->bytelen_p)) == NULL) flag = 1;
+    if ((ret->a_bytes = malloc(ret->bytelen_p+1)) == NULL) flag = 1;
     if ((ret->h0 = malloc(ret->bytelen_red)) == NULL) flag = 1;
     if ((ret->h1 = malloc(ret->bytelen_rec)) == NULL) flag = 1;
 
