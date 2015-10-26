@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "scheme.h"
 #include "benchmark.h"
 #include "locals.h"
 
@@ -14,9 +13,16 @@ int main(int argc, char **argv)
     int sec = 1024;
     int rec = 512;
     int red = 512;
-    SchemeMethods *schm = &OmegaMethods;
+
+    int sch_id = SCHID_ECOMG;
+    int bitlen_sec = 256;
+    int bitlen_rec = 256;
+    int bitlen_red = 128;
+    int bitlen_clr = 256;
     int sigcount = 1000;
     
+    InitCrypt();
+
     for (i=1; i<argc; i++)
     {
         if (strcmp(argv[i], "-sec") == 0)
@@ -24,7 +30,6 @@ int main(int argc, char **argv)
             assert(i<argc-1);
             i++;
             sec = atoi(argv[i]);
-            assert(sec == 1024 || sec == 2048);
         }
         else if (strcmp(argv[i], "-rec") == 0)
         {
@@ -43,27 +48,26 @@ int main(int argc, char **argv)
             assert(i<argc-1);
             i++;
             sigcount = atoi(argv[i]);
-            assert(sigcount > 0);
         }
         else
         {
             if (strcmp(argv[i], "ao") == 0)
-                schm = &AOMethods;
+                sch_id = SCHID_AO;
             else if (strcmp(argv[i], "pv") == 0)
-                schm = &PVMethods;
-            else if (strcmp(argv[i], "omega") == 0)
-                schm = &OmegaMethods;
+                sch_id = SCHID_PV;
+            else if (strcmp(argv[i], "omg") == 0)
+                sch_id = SCHID_OMG;
+            else if (strcmp(argv[i], "ecao") == 0)
+                sch_id = SCHID_ECAO;
+            else if (strcmp(argv[i], "ecpv") == 0)
+                sch_id = SCHID_ECPV;
+            else if (strcmp(argv[i], "ecomg") == 0)
+                sch_id = SCHID_ECOMG;
             else
                 assert(0);
         }
-        
     }
 
-    InitCrypt();
-
-    Scheme *sch = Scheme_new(schm, sec, rec, red);
-    assert(sch != NULL);
-    
-    test(sch, sigcount);
+    test(sch_id, bitlen_sec, bitlen_rec, bitlen_red, bitlen_clr, sigcount);
 }
 

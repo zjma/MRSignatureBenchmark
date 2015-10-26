@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/times.h>
 #include "scheme.h"
+#include "benchmark.h"
 
 int test_one(Scheme* sch, clock_t *s_tot, clock_t *son_tot, clock_t *v_tot)
 {
@@ -51,8 +52,35 @@ int test_one(Scheme* sch, clock_t *s_tot, clock_t *son_tot, clock_t *v_tot)
     return 0;
 }
 
-int test(Scheme* sch, int sign_count)
+static Scheme * get_scheme_by_id(int schid)
 {
+    switch (schid)
+    {
+    case SCHID_AO:
+        break;
+    case SCHID_ECAO:
+        break;
+    case SCHID_PV:
+        break;
+    case SCHID_ECPV:
+        break;
+    case SCHID_OMG:
+        break;
+    case SCHID_ECOMG:
+        break;
+    default:
+        assert(0);
+    }
+    //TODO
+    return NULL;
+}
+
+int test(int schid, int bitlen_sec, int bitlen_rec, int bitlen_red, int bitlen_clr, int sign_count)
+{
+    Scheme *sch = get_scheme_by_id(schid);
+
+    //TODO
+
     int ret;
     
     int i;
