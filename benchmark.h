@@ -6,6 +6,8 @@
 #define __BENCHMARK_H__
 
 
+#include <time.h>
+
 /* Scheme IDs in this project. */
 #define SCHID_OMG   0x0000
 #define SCHID_ECOMG 0x0e00

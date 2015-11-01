@@ -2,9 +2,10 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "benchmark.h"
-#include "locals.h"
+
 
 int main(int argc, char **argv)
 {
@@ -20,7 +21,7 @@ int main(int argc, char **argv)
     int bitlen_red = 128;
     int bitlen_clr = 256;
     int sigcount = 1000;
-    
+
     InitCrypt();
 
     for (i=1; i<argc; i++)
@@ -67,7 +68,11 @@ int main(int argc, char **argv)
                 assert(0);
         }
     }
-
-    test(sch_id, bitlen_sec, bitlen_rec, bitlen_red, bitlen_clr, sigcount);
+    clock_t s_tot = 0;
+    clock_t son_tot = 0;
+    clock_t v_tot = 0;
+    clock_t von_tot = 0;
+    test(sch_id, bitlen_sec,
+            bitlen_rec, bitlen_red, bitlen_clr, sigcount,
+            &s_tot, &son_tot, &v_tot, &von_tot);
 }
-
