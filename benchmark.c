@@ -1,3 +1,7 @@
+/**
+ * \file benchmark.c
+ */
+
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -12,7 +16,7 @@ int test_one(Scheme* sch, clock_t *s_tot, clock_t *son_tot, clock_t *v_tot)
     clock_t c0,c1,c2,c3,c4,c5;
     struct tms t0,t1,t2,t3,t4,t5;
     char msg[128];
-    
+
     c0 = clock();
     times(&t0);
     ret = Scheme_sign_offline(sch);
@@ -28,15 +32,15 @@ int test_one(Scheme* sch, clock_t *s_tot, clock_t *son_tot, clock_t *v_tot)
     c3 = clock();
 
     assert(ret >= 0);
-    
+
     c4 = clock();
     times(&t4);
     ret = Scheme_verify(sch);
     times(&t5);
     c5 = clock();
-    
+
     assert(ret >= 0);
-    
+
     /*
     c0 = t0.tms_utime;
     c1 = t1.tms_utime;
@@ -48,7 +52,7 @@ int test_one(Scheme* sch, clock_t *s_tot, clock_t *son_tot, clock_t *v_tot)
     *s_tot += c1-c0+c3-c2;
     *son_tot += c3-c2;
     *v_tot += c5-c4;
-    
+
     return 0;
 }
 
@@ -75,14 +79,18 @@ static Scheme * get_scheme_by_id(int schid)
     return NULL;
 }
 
-int test(int schid, int bitlen_sec, int bitlen_rec, int bitlen_red, int bitlen_clr, int sign_count)
+
+int test(int schid, int bitlen_sec,
+    int bitlen_rec, int bitlen_red, int bitlen_clr, int sign_count,
+    clock_t *ret_sign_tot, clock_t *ret_sign_onl,
+    clock_t *ret_vrfy_tot, clock_t *ret_vrfy_onl)
 {
     Scheme *sch = get_scheme_by_id(schid);
 
     //TODO
 
     int ret;
-    
+
     int i;
     clock_t sign_total = 0;
     clock_t sign_online_total = 0;
@@ -91,7 +99,7 @@ int test(int schid, int bitlen_sec, int bitlen_rec, int bitlen_red, int bitlen_c
     /* Warm up */
     ret = test_one(sch, &sign_total, &sign_online_total, &vrfy_total);
     assert(ret >= 0);
-    
+
     sign_total = 0;
     sign_online_total = 0;
     vrfy_total = 0;
@@ -117,5 +125,3 @@ int test(int schid, int bitlen_sec, int bitlen_rec, int bitlen_red, int bitlen_c
 
     return 0;
 }
-
-
