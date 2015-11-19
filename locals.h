@@ -44,6 +44,10 @@ int VHash(const char *msg, int msglen, char *dst, int dstlen);
 
 int BinXor(const char *s0, const char *s1, char *d, int len);
 
+int AES128CBC_cipher_len(int bytelen_plain);
+
+size_t bitlen2bytelen(size_t bitlen);
+
 int InitCrypt();
 
 int CleanCrypt();

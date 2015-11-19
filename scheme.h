@@ -9,11 +9,11 @@ struct SchemeMethods
     void (*mthd_keypair_free)(void *obj);
     int (*mthd_keypair_gen)(int sec, void *obj);
     const char *(*mthd_get_name)();
-    void *(*mthd_signsess_new)(int bitlen_clr, int bitlen_rec, int bitlen_red);
+    void *(*mthd_signsess_new)(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
     void (*mthd_signsess_free)(void* obj);
-    void *(*mthd_vrfysess_new)(int bitlen_clr, int bitlen_rec, int bitlen_red);
+    void *(*mthd_vrfysess_new)(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
     void (*mthd_vrfysess_free)(void* obj);
-    void *(*mthd_signature_new)(int bitlen_clr, int bitlen_rec, int bitlen_red);
+    void *(*mthd_signature_new)(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
     void (*mthd_signature_free)(void* obj);
     int (*mthd_get_sig_len)(int clr, int rec, int red, void *obj);
     int (*mthd_sig_encode)(int clr, int rec, int red, void *obj, char *buf);
@@ -121,6 +121,7 @@ void KeyPair_free(KeyPair *keypair);
 /**
  * Allocate for a context used to generate a signature.
  *
+ * \param keypair       A KeyPair object.
  * \param sch           A scheme object.
  * \param bitlen_clr    Length (in bit) of plain part of message.
  * \param bitlen_rec    Length (in bit) of recoverable part of message.
@@ -134,7 +135,7 @@ void KeyPair_free(KeyPair *keypair);
  *
  * \note    Remember to free it by calling SignSession_free().
  */
-SignSession *SignSession_new(Scheme *sch,
+SignSession *SignSession_new(KeyPair *keypair, Scheme *sch,
         int bitlen_clr, int bitlen_rec, int bitlen_red);
 
 

@@ -22,7 +22,7 @@ int test_one(Scheme* sch, int bitlen_sec,
     KeyPair *keypair = KeyPair_new(sch, bitlen_sec);
     assert(keypair != NULL);
 
-    SignSession *signsess = SignSession_new(sch,
+    SignSession *signsess = SignSession_new(keypair, sch,
             bitlen_clr, bitlen_rec, bitlen_red);
     assert(signsess != NULL);
 
@@ -91,21 +91,21 @@ static Scheme * get_scheme_by_id(int schid)
     Scheme *sch = NULL;
     switch (schid)
     {
-    case SCHID_AO:
-        sch = Scheme_new(&AOMethods);
-        break;
-    case SCHID_ECAO:
-        sch = Scheme_new(&ECAOMethods);
-        break;
-    case SCHID_PV:
-        sch = Scheme_new(&PVMethods);
-        break;
-    case SCHID_ECPV:
-        sch = Scheme_new(&ECPVMethods);
-        break;
-    case SCHID_OMG:
-        sch = Scheme_new(&OmegaMethods);
-        break;
+//    case SCHID_AO:
+//        sch = Scheme_new(&AOMethods);
+//        break;
+//    case SCHID_ECAO:
+//        sch = Scheme_new(&ECAOMethods);
+//        break;
+//    case SCHID_PV:
+//        sch = Scheme_new(&PVMethods);
+//        break;
+//    case SCHID_ECPV:
+//        sch = Scheme_new(&ECPVMethods);
+//        break;
+//    case SCHID_OMG:
+//        sch = Scheme_new(&OmegaMethods);
+//        break;
     case SCHID_ECOMG:
         sch = Scheme_new(&ECOmegaMethods);
         break;

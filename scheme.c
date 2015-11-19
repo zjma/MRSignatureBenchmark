@@ -88,23 +88,24 @@ void KeyPair_free(KeyPair *keypair)
 
 int KeyPair_gen(KeyPair *keypair)
 {
-    if (keypair == NULL) return;
+    if (keypair == NULL) return -1;
     int sec = keypair->sec;
     void *obj = keypair->obj;
     return keypair->sch->imp->mthd_keypair_gen(sec, obj);
 }
 
 
-SignSession *SignSession_new(Scheme *sch,
+SignSession *SignSession_new(KeyPair *keypair, Scheme *sch,
         int bitlen_clr, int bitlen_rec, int bitlen_red)
 {
+    if (keypair == NULL) return NULL;
     if (sch == NULL) return NULL;
     SignSession *ret = (SignSession*)malloc(sizeof(SignSession));
     ret->sch = sch;
     ret->bitlen_clr = bitlen_clr;
     ret->bitlen_rec = bitlen_rec;
     ret->bitlen_red = bitlen_red;
-    void *obj = sch->imp->mthd_signsess_new(bitlen_clr, bitlen_rec, bitlen_red);
+    void *obj = sch->imp->mthd_signsess_new(keypair->obj, bitlen_clr, bitlen_rec, bitlen_red);
     if (obj == NULL) goto err;
     ret->obj = obj;
     return ret;

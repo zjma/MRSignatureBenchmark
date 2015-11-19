@@ -109,3 +109,16 @@ int BinXor(const char *s0, const char *s1, char *d, int len)
         *d = (*(s0++)) ^ (*(s1++));
     return 0;
 }
+
+
+size_t bitlen2bytelen(size_t bitlen)
+{
+    return (bitlen+7)/8;
+}
+
+
+int AES128CBC_cipher_len(int bytelen_plain)
+{
+    //TODO
+    return 0;
+}
