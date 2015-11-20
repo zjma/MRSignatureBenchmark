@@ -192,7 +192,7 @@ int Signature_get_length(Signature *sig)
 }
 
 
-int Signature_encode(Signature *sig, char *buf)
+int Signature_encode(Signature *sig, unsigned char *buf)
 {
     if (sig == NULL) return -1;
     if (buf == NULL) return -1;
@@ -212,7 +212,7 @@ void Scheme_free(Scheme *sch)
 }
 
 
-const char *Scheme_get_name(Scheme *sch)
+const unsigned char *Scheme_get_name(Scheme *sch)
 {
     return sch->imp->mthd_get_name();
 }
@@ -235,7 +235,7 @@ int Scheme_sign_offline(Scheme *sch, KeyPair *keypair,
 
 int Scheme_sign_online(Scheme *sch, KeyPair *keypair,
         SignSession *sess, Signature *sig,
-        const char *msg, int msglen)
+        const unsigned char *msg, int msglen)
 {
     if (sch == NULL) return -1;
     if (keypair == NULL) return -1;
@@ -250,7 +250,7 @@ int Scheme_sign_online(Scheme *sch, KeyPair *keypair,
 }
 
 
-int Scheme_vrfy_offline(Scheme *sch, KeyPair *keypair, VrfySession *sess)
+int Scheme_vrfy_offline(Scheme *sch, KeyPair *keypair, VrfySession *sess, SignSession *signsess)
 {
     if (sch == NULL) return -1;
     if (keypair == NULL) return -1;
@@ -260,12 +260,12 @@ int Scheme_vrfy_offline(Scheme *sch, KeyPair *keypair, VrfySession *sess)
             sess->bitlen_rec,
             sess->bitlen_red,
             keypair->obj,
-            sess->obj);
+            sess->obj, signsess->obj);
 }
 
 
 int Scheme_vrfy_online(Scheme *sch, KeyPair *keypair, VrfySession *sess,
-        Signature *sig)
+        Signature *sig, SignSession *signsess)
 {
     if (sch == NULL) return -1;
     if (keypair == NULL) return -1;
@@ -277,5 +277,6 @@ int Scheme_vrfy_online(Scheme *sch, KeyPair *keypair, VrfySession *sess,
             sess->bitlen_red,
             keypair->obj,
             sess->obj,
-            sig->obj);
+            sig->obj,
+            signsess->obj);
 }

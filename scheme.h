@@ -16,16 +16,16 @@ struct SchemeMethods
     void *(*mthd_signature_new)(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
     void (*mthd_signature_free)(void* obj);
     int (*mthd_get_sig_len)(int clr, int rec, int red, void *obj);
-    int (*mthd_sig_encode)(int clr, int rec, int red, void *obj, char *buf);
+    int (*mthd_sig_encode)(int clr, int rec, int red, void *obj, unsigned char *buf);
     int (*mthd_sign_offline)(int clr, int rec, int red,
         void *keyobj, void *sessobj, void *sigobj);
     int (*mthd_sign_online)(int clr, int rec, int red,
         void *keyobj, void *sessobj, void *sigobj,
-        const char *msg, int msglen);
+        const unsigned char *msg, int msglen);
     int (*mthd_vrfy_offline)(int clr, int rec, int red,
-        void *keyobj, void *sessobj);
+        void *keyobj, void *sessobj, void *signsessobj);
     int (*mthd_vrfy_online)(int clr, int rec, int red,
-        void *keyobj, void *sessobj, void *sigobj);
+        void *keyobj, void *sessobj, void *sigobj, void *signsessobj);
 };
 
 
@@ -211,7 +211,7 @@ int Signature_get_length(Signature *sig);
  *
  * \return  0(OK), or <0(error).
  */
-int Signature_encode(Signature *sig, char *buf);
+int Signature_encode(Signature *sig, unsigned char *buf);
 
 
 /**
@@ -229,7 +229,7 @@ void Signature_free(Signature *sig);
  *
  * \return  A read-only string.
  */
-const char *Scheme_get_name(Scheme *sch);
+const unsigned char *Scheme_get_name(Scheme *sch);
 
 
 /**
@@ -260,7 +260,7 @@ int Scheme_sign_offline(Scheme *sch, KeyPair *keypair,
  */
 int Scheme_sign_online(Scheme *sch, KeyPair *keypair,
         SignSession *sess, Signature *sig,
-        const char *msg, int msglen);
+        const unsigned char *msg, int msglen);
 
 
 /**
@@ -272,7 +272,7 @@ int Scheme_sign_online(Scheme *sch, KeyPair *keypair,
  *
  * \return  0(accept), or 1(reject), or <0(error).
  */
-int Scheme_vrfy_offline(Scheme *sch, KeyPair *keypair, VrfySession *sess);
+int Scheme_vrfy_offline(Scheme *sch, KeyPair *keypair, VrfySession *sess, SignSession *signsess);
 
 
 /**
@@ -286,7 +286,7 @@ int Scheme_vrfy_offline(Scheme *sch, KeyPair *keypair, VrfySession *sess);
  * \return  0(accept), or 1(reject), or <0(error).
  */
 int Scheme_verify_online(Scheme *sch, KeyPair *keypair, VrfySession *sess,
-        Signature *sig);
+        Signature *sig, SignSession *signsess);
 
 
 #endif

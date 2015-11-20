@@ -11,15 +11,11 @@ int main(int argc, char **argv)
 {
     int i;
 
-    int sec = 1024;
-    int rec = 512;
-    int red = 512;
-
     int sch_id = SCHID_ECOMG;
     int bitlen_sec = 256;
-    int bitlen_rec = 256;
-    int bitlen_red = 128;
-    int bitlen_clr = 256;
+    int bitlen_rec = 512;
+    int bitlen_red = 80;
+    int bitlen_clr = 0;
     int sigcount = 1000;
 
     InitCrypt();
@@ -30,19 +26,25 @@ int main(int argc, char **argv)
         {
             assert(i<argc-1);
             i++;
-            sec = atoi(argv[i]);
+            bitlen_sec = atoi(argv[i]);
         }
         else if (strcmp(argv[i], "-rec") == 0)
         {
             assert(i<argc-1);
             i++;
-            rec = atoi(argv[i]);
+            bitlen_rec = atoi(argv[i]);
+        }
+        else if (strcmp(argv[i], "-clr") == 0)
+        {
+            assert(i<argc-1);
+            i++;
+            bitlen_clr = atoi(argv[i]);
         }
         else if (strcmp(argv[i], "-red") == 0)
         {
             assert(i<argc-1);
             i++;
-            red = atoi(argv[i]);
+            bitlen_red = atoi(argv[i]);
         }
         else if (strcmp(argv[i], "-sigcount") == 0)
         {
@@ -75,4 +77,16 @@ int main(int argc, char **argv)
     test(sch_id, bitlen_sec,
             bitlen_rec, bitlen_red, bitlen_clr, sigcount,
             &s_tot, &son_tot, &v_tot, &von_tot);
+
+    printf( "\nResults for %d requests:\n"
+            "Sign tot:        %d\n"
+            "Sign online tot: %d\n"
+            "Vrfy tot:        %d\n"
+            "Vrfy online tot: %d\n",
+            sigcount,
+            (int)s_tot,
+            (int)son_tot,
+            (int)v_tot,
+            (int)von_tot);
+
 }

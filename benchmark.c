@@ -37,7 +37,7 @@ int test_one(Scheme* sch, int bitlen_sec,
     assert(sig != NULL);
 
     int msglen = bitlen_rec/8 + bitlen_clr/8;
-    char *msg = malloc(msglen);
+    unsigned char *msg = malloc(msglen);
     assert(msg != NULL);
 
     c0 = clock();
@@ -58,19 +58,19 @@ int test_one(Scheme* sch, int bitlen_sec,
 
     c4 = clock();
     // times(&t4);
-    ret = Scheme_vrfy_offline(sch, keypair, vrfysess);
+    ret = Scheme_vrfy_offline(sch, keypair, vrfysess, signsess);
     // times(&t5);
     c5 = clock();
 
-    assert(ret >= 0);
+    if (ret < 0) return -1;//assert(ret >= 0);
 
     c6 = clock();
     // times(&t6);
-    ret = Scheme_vrfy_online(sch, keypair, vrfysess, sig);
+    ret = Scheme_vrfy_online(sch, keypair, vrfysess, sig, signsess);
     // times(&t7);
     c7 = clock();
 
-    assert(ret >= 0);
+    if (ret < 0) return -1;//assert(ret >= 0);
 
     /*
     c0 = t0.tms_utime;
@@ -84,12 +84,14 @@ int test_one(Scheme* sch, int bitlen_sec,
     */
     *s_tot += c1-c0+c3-c2;
     *son_tot += c3-c2;
-    *v_tot += c5-c4;
-    *von_tot += c7-c6+c5-c4;
+    *von_tot += c5-c4;
+    *v_tot += c7-c6+c5-c4;
     KeyPair_free(keypair);
     SignSession_free(signsess);
     VrfySession_free(vrfysess);
     Signature_free(sig);
+    free(msg);
+
     return 0;
 }
 
@@ -136,6 +138,7 @@ int test(int schid, int bitlen_sec,
     clock_t sign_online_total = 0;
     clock_t vrfy_total = 0;
     clock_t vrfy_online_total = 0;
+
     /* Warm up */
     ret = test_one(sch, bitlen_sec,
             bitlen_clr, bitlen_rec, bitlen_red,
@@ -158,17 +161,6 @@ int test(int schid, int bitlen_sec,
         assert(ret >= 0);
     }
 
-    // char *name = Scheme_get_name(sch);
-    // assert(name != NULL);
-    // printf("\nResults for %d %s:\n"
-    //         "Sign tot:        %d\n"
-    //         "Sign online tot: %d\n"
-    //         "Vrfy tot:        %d\n",
-    //         sign_count,
-    //         name,
-    //         (int)sign_total,
-    //         (int)sign_online_total,
-    //         (int)vrfy_total);
     *ret_sign_tot = sign_total;
     *ret_sign_onl = sign_online_total;
     *ret_vrfy_tot = vrfy_total;

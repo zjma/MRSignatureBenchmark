@@ -48,8 +48,11 @@ int AES128CBC_fixIV_cipher_len(int bytelen_plain);
 
 size_t bitlen2bytelen(size_t bitlen);
 
+void hexdump(char *where, size_t howmany);
+
 int InitCrypt();
 
 int CleanCrypt();
 
+#define max(a,b) ((a>b)?a:b)
 #endif
