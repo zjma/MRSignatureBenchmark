@@ -134,14 +134,27 @@ void hexdump(const unsigned char *where, size_t howmany)
 
 }
 
+
+static unsigned char prgbuf[64];
+
 int PRG(const unsigned char *seed, size_t bytelen_seed,
         unsigned char *product, size_t bytelen_need)
 {
-    //TODO: dummy now.
-    int i;
-    for (i=0; i<bytelen_need; i++)
+    size_t req = bytelen_need;
+    unsigned char *p = product;
+
+    int low = 0;
+
+    DoSHA256(seed, bytelen_seed, prgbuf);
+    while (req > 0)
     {
-        product[i] = seed[i%bytelen_seed];
+        int crtneed = (req<32)?req:32;
+        memcpy(p, prgbuf+(low*32), crtneed);
+        req -= crtneed;
+        p += crtneed;
+        if (req == 0) break;
+        DoSHA256(prgbuf+(low*32), 32, prgbuf+((1-low)*32));
+        low = 1-low;
     }
     return 0;
 }
