@@ -150,6 +150,7 @@ void SignSession_free(SignSession *sess);
 /**
  * Allocate for a context used to generate a signature.
  *
+ * \param keypair       A KeyPair object.
  * \param sch           A scheme object.
  * \param bitlen_clr    Length (in bit) of plain part of message.
  * \param bitlen_rec    Length (in bit) of recoverable part of message.
@@ -163,7 +164,7 @@ void SignSession_free(SignSession *sess);
  *
  * \note    Remember to free it by calling SignSession_free().
  */
-VrfySession *VrfySession_new(Scheme *sch,
+VrfySession *VrfySession_new(KeyPair *keypair, Scheme *sch,
         int bitlen_clr, int bitlen_rec, int bitlen_red);
 
 
@@ -178,6 +179,7 @@ void VrfySession_free(VrfySession *sess);
 /**
  * Allocate for a signature structure used to store a signature.
  *
+ * \param keypair       A KeyPair object.
  * \param sch           A scheme object.
  * \param bitlen_clr    Length (in bit) of plain part of message.
  * \param bitlen_rec    Length (in bit) of recoverable part of message.
@@ -185,7 +187,7 @@ void VrfySession_free(VrfySession *sess);
  *
  * \return  A signature object if OK, or NULL if error.
  */
-Signature *Signature_new(Scheme *sch,
+Signature *Signature_new(KeyPair *keypair, Scheme *sch,
         int bitlen_clr, int bitlen_rec, int bitlen_red);
 
 

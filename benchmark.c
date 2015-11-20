@@ -22,15 +22,18 @@ int test_one(Scheme* sch, int bitlen_sec,
     KeyPair *keypair = KeyPair_new(sch, bitlen_sec);
     assert(keypair != NULL);
 
+    ret = KeyPair_gen(keypair);
+    assert(ret == 0);
+
     SignSession *signsess = SignSession_new(keypair, sch,
             bitlen_clr, bitlen_rec, bitlen_red);
     assert(signsess != NULL);
 
-    VrfySession *vrfysess = VrfySession_new(sch,
+    VrfySession *vrfysess = VrfySession_new(keypair, sch,
             bitlen_clr, bitlen_rec, bitlen_red);
     assert(vrfysess != NULL);
 
-    Signature *sig = Signature_new(sch, bitlen_clr, bitlen_rec, bitlen_red);
+    Signature *sig = Signature_new(keypair, sch, bitlen_clr, bitlen_rec, bitlen_red);
     assert(sig != NULL);
 
     int msglen = bitlen_rec/8 + bitlen_clr/8;
@@ -83,6 +86,10 @@ int test_one(Scheme* sch, int bitlen_sec,
     *son_tot += c3-c2;
     *v_tot += c5-c4;
     *von_tot += c7-c6+c5-c4;
+    KeyPair_free(keypair);
+    SignSession_free(signsess);
+    VrfySession_free(vrfysess);
+    Signature_free(sig);
     return 0;
 }
 

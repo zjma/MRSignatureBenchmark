@@ -52,7 +52,7 @@ int DoSHA256(const char *msg, int msglen, char *dst)
     return 0;
 }
 
-int DoAES256CBC(char *key,
+int DoAES256CBC_fixIV(char *key,
         const char *ptxt, int plen,
         char *ctxt, int *clen)
 {
@@ -78,7 +78,7 @@ int VHash(const char *msg, int msglen,
     assert(ret==0);
     
     /* Encrypt msg to tmpbuf */
-    DoAES256CBC(AESKEY, msg, dstlen, tmpbuf, &buflen);
+    DoAES256CBC_fixIV(AESKEY, msg, dstlen, tmpbuf, &buflen);
     assert(buflen >= dstlen);
 
     /* Resize tmpbuf to dst */
@@ -117,8 +117,8 @@ size_t bitlen2bytelen(size_t bitlen)
 }
 
 
-int AES128CBC_cipher_len(int bytelen_plain)
+int AES128CBC_fixIV_cipher_len(int bytelen_plain)
 {
-    //TODO
-    return 0;
+    int b=1+bytelen_plain/16;
+    return 16*b;
 }

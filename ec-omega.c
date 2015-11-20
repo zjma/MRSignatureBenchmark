@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
@@ -77,6 +78,23 @@ struct ECOMG_Sig
     char *z_bytes;
 };
 
+
+void *ECOMG_keypair_new(int sec);
+void ECOMG_keypair_free(void *obj);
+int ECOMG_keypair_gen(int sec, void *obj);
+const char *ECOMG_get_name();
+void *ECOMG_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
+void ECOMG_signsess_free(void* obj);
+void *ECOMG_vrfysess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
+void ECOMG_vrfysess_free(void* obj);
+void *ECOMG_signature_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
+void ECOMG_signature_free(void* obj);
+int ECOMG_get_sig_len(int clr, int rec, int red, void *obj);
+int ECOMG_sig_encode(int clr, int rec, int red, void *obj, char *buf);
+int ECOMG_sign_offline(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj);
+int ECOMG_sign_online(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj, const char *msg, int msglen);
+int ECOMG_vrfy_offline(int clr, int rec, int red, void *keyobj, void *sessobj);
+int ECOMG_vrfy_online(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj);
 
 void *ECOMG_keypair_new(int sec)
 {
@@ -166,6 +184,7 @@ int ECOMG_keypair_gen(int sec, void *obj)
     keypair->bytelen_go = BN_num_bytes(keypair->group_order);
     keypair->bytelen_point = EC_POINT_point2oct(
             grp, keypair->h, POINT_CONVERSION_COMPRESSED, NULL, 0, bnctx);
+    //printf("bytelen-point=%d\n", keypair->bytelen_point);
     ret = 0;
 
 final:
@@ -193,7 +212,7 @@ void *ECOMG_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitle
     void *flag = NULL;
     flag = sess->r = BN_new();if (flag == NULL) goto err;
     flag = sess->a = EC_POINT_new(keypair->group);if (flag == NULL) goto err;
-    flag = sess->a_bytes = malloc(keypair->bytelen_point);if (flag == NULL) goto err;
+    flag = sess->a_bytes = malloc(keypair->bytelen_point+1);if (flag == NULL) goto err;
 
     int bytelen_red = (bitlen_red+7)/8;
     int bytelen_rec = (bitlen_rec+7)/8;
@@ -204,7 +223,7 @@ void *ECOMG_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitle
     flag = sess->e0w = BN_new();if (flag == NULL) goto err;
     flag = sess->re0w = BN_new();if (flag == NULL) goto err;
 
-    int bytelen_d1 = AES128CBC_cipher_len(bytelen_rec);
+    int bytelen_d1 = AES128CBC_fixIV_cipher_len(bytelen_rec);
     flag = sess->covered = malloc(bytelen_d1);if (flag == NULL) goto err;
     flag = sess->d1mclr = malloc(bytelen_clr + bytelen_d1);if (flag == NULL) goto err;
     flag = sess->e1_bytes = malloc(keypair->bytelen_go);if (flag == NULL) goto err;
@@ -251,7 +270,7 @@ void *ECOMG_vrfysess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitle
     int bytelen_red = (bitlen_red+7)/8;
     int bytelen_clr = bitlen2bytelen(bitlen_clr);
     int bytelen_rec = bitlen2bytelen(bitlen_rec);
-    int bytelen_covered = AES128CBC_cipher_len(bytelen_rec);
+    int bytelen_covered = AES128CBC_fixIV_cipher_len(bytelen_rec);
     void *flag = NULL;
     flag = sess->e1_bytes = malloc(keypair->bytelen_go);if(flag==NULL) goto err;
     flag = sess->mclrcov = malloc(bytelen_clr+bytelen_covered);if(flag==NULL) goto err;
@@ -260,10 +279,11 @@ void *ECOMG_vrfysess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitle
     flag = sess->e0e1 = BN_new();if(flag==NULL) goto err;
     flag = sess->z = BN_new();if(flag==NULL) goto err;
     flag = sess->a = EC_POINT_new(keypair->group);if    (flag==NULL) goto err;
-    flag = sess->a_bytes = malloc(keypair->bytelen_point);if(flag==NULL) goto err;
+    flag = sess->a_bytes = malloc(keypair->bytelen_point+1);if(flag==NULL) goto err;
     flag = sess->redun = malloc(bytelen_red);if(flag==NULL) goto err;
     flag = sess->tmpkey = malloc(keypair->bytelen_go);if(flag==NULL) goto err;
     flag = sess->m_rec = malloc(bytelen_rec);if(flag==NULL) goto err;
+    flag = sess->bnctx = BN_CTX_new();if (flag==NULL) goto err;
     return sess;
 err:
     ECOMG_vrfysess_free(sess);
@@ -299,7 +319,7 @@ void *ECOMG_signature_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitl
     void *flag = NULL;
     int bytelen_red = (bitlen_red+7)/8;
     int bytelen_rec = (bitlen_rec+7)/8;
-    int bytelen_covered = AES128CBC_cipher_len(bytelen_rec);
+    int bytelen_covered = AES128CBC_fixIV_cipher_len(bytelen_rec);
     int bytelen_clr = (bitlen_clr+7)/8;
     int bytelen_z = keypair->bytelen_go;
     flag = sig->m_clr = malloc(bytelen_clr);if (flag==NULL) goto err;
@@ -343,7 +363,7 @@ int ECOMG_get_sig_len(int clr, int rec, int red, void *obj)
     int bytelen_clr = bitlen2bytelen(clr);
     int bytelen_red = bitlen2bytelen(red);
     int bytelen_rec = bitlen2bytelen(rec);
-    return 16+bytelen_clr+bytelen_red+AES128CBC_cipher_len(bytelen_rec)+sig->bytelen_z;
+    return 16+bytelen_clr+bytelen_red+AES128CBC_fixIV_cipher_len(bytelen_rec)+sig->bytelen_z;
 }
 
 
@@ -353,7 +373,7 @@ int ECOMG_sig_encode(int clr, int rec, int red, void *obj, char *buf)
     int bytelen_clr = bitlen2bytelen(clr);
     int bytelen_red = bitlen2bytelen(red);
     int bytelen_rec = bitlen2bytelen(rec);
-    int bytelen_covered = AES128CBC_cipher_len(bytelen_rec);
+    int bytelen_covered = AES128CBC_fixIV_cipher_len(bytelen_rec);
     int bytelen_z = sig->bytelen_z;
 
     char *c = buf;
@@ -394,16 +414,17 @@ int ECOMG_sign_offline(int clr, int rec, int red,
             sess->a, POINT_CONVERSION_COMPRESSED,
             sess->a_bytes, ret, sess->bnctx);
     assert(ret>=0);
-
+    int bytelen_a = ret;
+    assert(bytelen_a == keys->bytelen_point);
     /* Compute redun = DDF(a) = H(a||0x00) */
-    sess->a_bytes[ret] = 0x00;
-    ret = VHash(sess->a_bytes, ret+1,
+    sess->a_bytes[bytelen_a] = 0x00;
+    ret = VHash(sess->a_bytes, bytelen_a+1,
             sig->redun, bitlen2bytelen(red));
     assert(ret==0);
 
     /* Compute key = KDF(a) = H(a||0x01) */
-    sess->a_bytes[ret] = 0x01;
-    ret = VHash(sess->a_bytes, ret+1,
+    sess->a_bytes[bytelen_a] = 0x01;
+    ret = VHash(sess->a_bytes, bytelen_a+1,
             sess->tmpkey, keys->bytelen_go);
     assert(ret==0);
 
@@ -433,12 +454,13 @@ int ECOMG_sign_online(int clr, int rec, int red,
     ECOMG_Sig *sig = (ECOMG_Sig*)sigobj;
     int ret;
     int bytelen_rec = bitlen2bytelen(rec);
-    int bytelen_covered = AES128CBC_cipher_len(bytelen_rec);
-    /* compute covered = key xor m_rec */
-    int i;
-    for (i=0; i<bytelen_rec; i++)
-        sess->covered[i] = sess->tmpkey[i]^msg[i];
-    
+    int bytelen_covered = AES128CBC_fixIV_cipher_len(bytelen_rec);
+    /* compute covered = Encrypt(tmpkey, m_rec) */
+//    int i;
+//    for (i=0; i<bytelen_rec; i++)
+//        sess->covered[i] = sess->tmpkey[i]^msg[i];
+    int clen;
+    DoAES256CBC_fixIV(sess->tmpkey, msg, bytelen_rec, sess->covered, &clen);
     const char *m_clr = msg+bytelen_rec;
     int bytelen_clr = msglen - bytelen_rec;
 
@@ -505,10 +527,10 @@ int ECOMG_vrfy_online(int clr, int rec, int red,
             sess->a, POINT_CONVERSION_COMPRESSED,
             sess->a_bytes, ret, sess->bnctx);
     assert(ret>=0);
-
+    int bytelen_a = ret;
     /* Compute redun=H(a_bytes||00) */
-    sess->a_bytes[ret] = 0x00;
-    ret = VHash(sess->a_bytes, ret+1,
+    sess->a_bytes[bytelen_a] = 0x00;
+    ret = VHash(sess->a_bytes, bytelen_a+1,
             sess->redun, sig->bytelen_red);
     assert(ret==0);
 
@@ -516,12 +538,16 @@ int ECOMG_vrfy_online(int clr, int rec, int red,
     {
         int i;
         for (i=0; i<sig->bytelen_red; i++)
-            if (sig->redun[i] != sess->redun[i]) return -1;
+            if (sig->redun[i] != sess->redun[i])
+            {
+                int j = 0;
+                return -1;
+            }
     }
 
     /* Compute tmpkey=H(a_bytes||01) */
-    sess->a_bytes[ret] = 0x01;
-    ret = VHash(sess->a_bytes, ret+1,
+    sess->a_bytes[bytelen_a] = 0x01;
+    ret = VHash(sess->a_bytes, bytelen_a+1,
             sess->tmpkey, keys->bytelen_go);
     assert(ret==0);
 

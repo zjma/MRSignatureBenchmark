@@ -111,6 +111,7 @@ SignSession *SignSession_new(KeyPair *keypair, Scheme *sch,
     return ret;
 err:
     SignSession_free(ret);
+    return NULL;
 }
 
 
@@ -122,7 +123,7 @@ void SignSession_free(SignSession *sess)
 }
 
 
-VrfySession *VrfySession_new(Scheme *sch,
+VrfySession *VrfySession_new(KeyPair *keypair, Scheme *sch,
         int bitlen_clr, int bitlen_rec, int bitlen_red)
 {
     if (sch == NULL) return NULL;
@@ -131,13 +132,15 @@ VrfySession *VrfySession_new(Scheme *sch,
     ret->bitlen_clr = bitlen_clr;
     ret->bitlen_rec = bitlen_rec;
     ret->bitlen_red = bitlen_red;
-    void *obj = sch->imp->mthd_vrfysess_new(bitlen_clr, bitlen_rec, bitlen_red);
+    void *keyobj = keypair->obj;
+    void *obj = sch->imp->mthd_vrfysess_new(keyobj, bitlen_clr, bitlen_rec, bitlen_red);
     if (obj == NULL) goto err;
     ret->obj = obj;
     return ret;
 
 err:
     VrfySession_free(ret);
+    return NULL;
 }
 
 
@@ -149,7 +152,7 @@ void VrfySession_free(VrfySession *sess)
 }
 
 
-Signature *Signature_new(Scheme *sch,
+Signature *Signature_new(KeyPair *keypair, Scheme *sch,
         int bitlen_clr, int bitlen_rec, int bitlen_red)
 {
     if (sch == NULL) return NULL;
@@ -158,7 +161,8 @@ Signature *Signature_new(Scheme *sch,
     ret->bitlen_clr = bitlen_clr;
     ret->bitlen_rec = bitlen_rec;
     ret->bitlen_red = bitlen_red;
-    void *obj = sch->imp->mthd_signature_new(
+    void *keyobj = keypair->obj;
+    void *obj = sch->imp->mthd_signature_new(keyobj,
             bitlen_clr, bitlen_rec, bitlen_red);
     if (obj == NULL) goto err;
     ret->obj = obj;
