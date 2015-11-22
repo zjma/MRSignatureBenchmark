@@ -10,7 +10,8 @@
 #include "scheme.h"
 #include "benchmark.h"
 
-int test_one(Scheme* sch, int bitlen_sec,
+int test_one(Scheme* sch, KeyPair *keypair, SignSession *signsess,
+        VrfySession *vrfysess, Signature *sig, int bitlen_sec,
         int bitlen_clr, int bitlen_rec, int bitlen_red,
         clock_t *s_tot, clock_t *son_tot,
         clock_t *v_tot, clock_t *von_tot)
@@ -19,22 +20,22 @@ int test_one(Scheme* sch, int bitlen_sec,
     clock_t c0,c1,c2,c3,c4,c5,c6,c7;
     // struct tms t0,t1,t2,t3,t4,t5,t6,t7;
 
-    KeyPair *keypair = KeyPair_new(sch, bitlen_sec);
-    assert(keypair != NULL);
-
-    ret = KeyPair_gen(keypair);
-    assert(ret == 0);
-
-    SignSession *signsess = SignSession_new(keypair, sch,
-            bitlen_clr, bitlen_rec, bitlen_red);
-    assert(signsess != NULL);
-
-    VrfySession *vrfysess = VrfySession_new(keypair, sch,
-            bitlen_clr, bitlen_rec, bitlen_red);
-    assert(vrfysess != NULL);
-
-    Signature *sig = Signature_new(keypair, sch, bitlen_clr, bitlen_rec, bitlen_red);
-    assert(sig != NULL);
+//    KeyPair *keypair = KeyPair_new(sch, bitlen_sec);
+//    assert(keypair != NULL);
+//
+//    ret = KeyPair_gen(keypair);
+//    assert(ret == 0);
+//
+//    SignSession *signsess = SignSession_new(keypair, sch,
+//            bitlen_clr, bitlen_rec, bitlen_red);
+//    assert(signsess != NULL);
+//
+//    VrfySession *vrfysess = VrfySession_new(keypair, sch,
+//            bitlen_clr, bitlen_rec, bitlen_red);
+//    assert(vrfysess != NULL);
+//
+//    Signature *sig = Signature_new(keypair, sch, bitlen_clr, bitlen_rec, bitlen_red);
+//    assert(sig != NULL);
 
     int msglen = bitlen_rec/8 + bitlen_clr/8;
     unsigned char *msg = malloc(msglen);
@@ -86,10 +87,10 @@ int test_one(Scheme* sch, int bitlen_sec,
     *son_tot += c3-c2;
     *von_tot += c5-c4;
     *v_tot += c7-c6+c5-c4;
-    KeyPair_free(keypair);
-    SignSession_free(signsess);
-    VrfySession_free(vrfysess);
-    Signature_free(sig);
+//    KeyPair_free(keypair);
+//    SignSession_free(signsess);
+//    VrfySession_free(vrfysess);
+//    Signature_free(sig);
     free(msg);
 
     return 0;
@@ -133,6 +134,23 @@ int test(int schid, int bitlen_sec,
 
     int ret;
 
+    KeyPair *keypair = KeyPair_new(sch, bitlen_sec);
+    assert(keypair != NULL);
+
+    ret = KeyPair_gen(keypair);
+    assert(ret == 0);
+
+    SignSession *signsess = SignSession_new(keypair, sch,
+            bitlen_clr, bitlen_rec, bitlen_red);
+    assert(signsess != NULL);
+
+    VrfySession *vrfysess = VrfySession_new(keypair, sch,
+            bitlen_clr, bitlen_rec, bitlen_red);
+    assert(vrfysess != NULL);
+
+    Signature *sig = Signature_new(keypair, sch, bitlen_clr, bitlen_rec, bitlen_red);
+    assert(sig != NULL);
+
     int i;
     clock_t sign_total = 0;
     clock_t sign_online_total = 0;
@@ -140,7 +158,9 @@ int test(int schid, int bitlen_sec,
     clock_t vrfy_online_total = 0;
 
     /* Warm up */
-    ret = test_one(sch, bitlen_sec,
+    ret = test_one(sch,
+            keypair, signsess, vrfysess, sig,
+            bitlen_sec,
             bitlen_clr, bitlen_rec, bitlen_red,
             &sign_total, &sign_online_total,
             &vrfy_total, &vrfy_online_total);
@@ -154,16 +174,26 @@ int test(int schid, int bitlen_sec,
 
     for (i=0; i<sign_count; i++)
     {
-        ret = test_one(sch, bitlen_sec,
+        ret = test_one(sch,
+                keypair, signsess, vrfysess, sig,
+                bitlen_sec,
                 bitlen_clr, bitlen_rec, bitlen_red,
                 &sign_total, &sign_online_total,
                 &vrfy_total, &vrfy_online_total);
+
         assert(ret >= 0);
+        printf(".");
     }
+    printf("\n");
 
     *ret_sign_tot = sign_total;
     *ret_sign_onl = sign_online_total;
     *ret_vrfy_tot = vrfy_total;
     *ret_vrfy_onl = vrfy_online_total;
+
+//    KeyPair_free(keypair);
+//    SignSession_free(signsess);
+//    VrfySession_free(vrfysess);
+//    Signature_free(sig);
     return 0;
 }
