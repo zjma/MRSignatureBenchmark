@@ -90,8 +90,8 @@ int ECOMG_get_sig_len(int clr, int rec, int red, void *obj);
 int ECOMG_sig_encode(int clr, int rec, int red, void *obj, unsigned char *buf);
 int ECOMG_sign_offline(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj);
 int ECOMG_sign_online(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj, const unsigned char *msg, int msglen);
-int ECOMG_vrfy_offline(int clr, int rec, int red, void *keyobj, void *sessobj, void *signsessobj);
-int ECOMG_vrfy_online(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj, void *signsessobj);
+int ECOMG_vrfy_offline(int clr, int rec, int red, void *keyobj, void *sessobj);
+int ECOMG_vrfy_online(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj);
 
 
 void *ECOMG_keypair_new(int sec)
@@ -487,19 +487,18 @@ int ECOMG_sign_online(int clr, int rec, int red,
 
 
 int ECOMG_vrfy_offline(int clr, int rec, int red,
-        void *keyobj, void *sessobj, void *signsessobj)
+        void *keyobj, void *sessobj)
 {
     return 0;
 }
 
 int ECOMG_vrfy_online(int clr, int rec, int red,
-        void *keyobj, void *sessobj, void *sigobj, void *signsessobj)
+        void *keyobj, void *sessobj, void *sigobj)
 {
     /* Rename objects. */
     ECOMG_KeyPair *keys = (ECOMG_KeyPair*)keyobj;
     ECOMG_VrfySess *sess = (ECOMG_VrfySess*)sessobj;
     ECOMG_Sig *sig = (ECOMG_Sig*)sigobj;
-    ECOMG_SignSess *signsess = (ECOMG_SignSess*)signsessobj;
     int ret;
 
     /* Name some parameters. */
@@ -508,10 +507,6 @@ int ECOMG_vrfy_online(int clr, int rec, int red,
 
     /* Derive e0 from redun. */
     BN_bin2bn(sig->redun, sig->bytelen_red, sess->e0);
-    //BN_print_fp(stdout, sess->e0);printf("\n");
-    //BN_print_fp(stdout, signsess->e0);printf("\n");
-    //if (BN_cmp(sess->e0, signsess->e0)!=0) return -1;
-    assert(BN_cmp(sess->e0, signsess->e0)==0);
 
     /* Derive e1 from H(m_clr||covered)*/
     memcpy(sess->mclrcov, sig->m_clr, sig->bytelen_clr);
@@ -519,12 +514,10 @@ int ECOMG_vrfy_online(int clr, int rec, int red,
     VHash(sess->mclrcov, sig->bytelen_clr+sig->bytelen_covered,
             sess->e1_bytes, keys->bytelen_go);
     BN_bin2bn(sess->e1_bytes, keys->bytelen_go, sess->e1);
-    if (BN_cmp(sess->e1, signsess->e1)!=0) return -1;
+
     /* Compute a=zG+(e0+e1)PK */
     BN_mod_add(sess->e0e1, sess->e0, sess->e1, keys->group_order, sess->bnctx);
     EC_POINT_mul(keys->group, sess->A, sig->z, keys->PK, sess->e0e1, sess->bnctx);
-
-    assert(EC_POINT_cmp(keys->group, sess->A, signsess->A, signsess->bnctx)==0);
 
     /* Convert a to a_bytes */
     ret = EC_POINT_point2oct(keys->group,

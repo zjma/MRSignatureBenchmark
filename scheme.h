@@ -23,9 +23,9 @@ struct SchemeMethods
         void *keyobj, void *sessobj, void *sigobj,
         const unsigned char *msg, int msglen);
     int (*mthd_vrfy_offline)(int clr, int rec, int red,
-        void *keyobj, void *sessobj, void *signsessobj);
+        void *keyobj, void *sessobj);
     int (*mthd_vrfy_online)(int clr, int rec, int red,
-        void *keyobj, void *sessobj, void *sigobj, void *signsessobj);
+        void *keyobj, void *sessobj, void *sigobj);
 };
 
 
@@ -272,7 +272,7 @@ int Scheme_sign_online(Scheme *sch, KeyPair *keypair,
  *
  * \return  0(accept), or 1(reject), or <0(error).
  */
-int Scheme_vrfy_offline(Scheme *sch, KeyPair *keypair, VrfySession *sess, SignSession *signsess);
+int Scheme_vrfy_offline(Scheme *sch, KeyPair *keypair, VrfySession *sess);
 
 
 /**
@@ -286,7 +286,7 @@ int Scheme_vrfy_offline(Scheme *sch, KeyPair *keypair, VrfySession *sess, SignSe
  * \return  0(accept), or 1(reject), or <0(error).
  */
 int Scheme_verify_online(Scheme *sch, KeyPair *keypair, VrfySession *sess,
-        Signature *sig, SignSession *signsess);
+        Signature *sig);
 
 
 #endif

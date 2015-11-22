@@ -58,7 +58,7 @@ int test_one(Scheme* sch, int bitlen_sec,
 
     c4 = clock();
     // times(&t4);
-    ret = Scheme_vrfy_offline(sch, keypair, vrfysess, signsess);
+    ret = Scheme_vrfy_offline(sch, keypair, vrfysess);
     // times(&t5);
     c5 = clock();
 
@@ -66,7 +66,7 @@ int test_one(Scheme* sch, int bitlen_sec,
 
     c6 = clock();
     // times(&t6);
-    ret = Scheme_vrfy_online(sch, keypair, vrfysess, sig, signsess);
+    ret = Scheme_vrfy_online(sch, keypair, vrfysess, sig);
     // times(&t7);
     c7 = clock();
 
