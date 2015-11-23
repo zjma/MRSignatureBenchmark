@@ -215,16 +215,16 @@ void *ECOMG1_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitl
 
     int bytelen_red = (bitlen_red+7)/8;
     int bytelen_rec = (bitlen_rec+7)/8;
+    int bytelen_covered = bytelen_rec;
     int bytelen_clr = (bitlen_clr+7)/8;
-    int bytelen_tmpkey = bytelen_red+bytelen_rec;
+    int bytelen_tmpkey = bytelen_rec;
 
-    flag = sess->red_n_key = malloc(bytelen_tmpkey);if (flag == NULL) goto err;
+    flag = sess->red_n_key = malloc(bytelen_red+bytelen_tmpkey);if (flag == NULL) goto err;
     flag = sess->e0 = BN_new();if (flag == NULL) goto err;
     flag = sess->e0w = BN_new();if (flag == NULL) goto err;
     flag = sess->re0w = BN_new();if (flag == NULL) goto err;
 
-    int bytelen_d1 = AES128CBC_fixIV_cipher_len(bytelen_rec);
-    flag = sess->mclrcov = malloc(bytelen_clr + bytelen_d1);if (flag == NULL) goto err;
+    flag = sess->mclrcov = malloc(bytelen_clr + bytelen_covered);if (flag == NULL) goto err;
     flag = sess->e1_bytes = malloc(keypair->bytelen_go);if (flag == NULL) goto err;
     flag = sess->e1 = BN_new();if (flag == NULL) goto err;
     flag = sess->e1w = BN_new();if (flag == NULL) goto err;
@@ -357,7 +357,7 @@ int ECOMG1_get_sig_len(int clr, int rec, int red, void *obj)
     int bytelen_clr = bitlen2bytelen(clr);
     int bytelen_red = bitlen2bytelen(red);
     int bytelen_rec = bitlen2bytelen(rec);
-    return 16+bytelen_clr+bytelen_red+AES128CBC_fixIV_cipher_len(bytelen_rec)+sig->bytelen_z;
+    return 16+bytelen_clr+bytelen_red+bytelen_rec+sig->bytelen_z;
 }
 
 
@@ -367,7 +367,7 @@ int ECOMG1_sig_encode(int clr, int rec, int red, void *obj, unsigned char *buf)
     int bytelen_clr = bitlen2bytelen(clr);
     int bytelen_red = bitlen2bytelen(red);
     int bytelen_rec = bitlen2bytelen(rec);
-    int bytelen_covered = AES128CBC_fixIV_cipher_len(bytelen_rec);
+    int bytelen_covered = bytelen_rec;
     int bytelen_z = sig->bytelen_z;
 
     unsigned char *c = buf;
@@ -393,7 +393,8 @@ int ECOMG1_sign_offline(int clr, int rec, int red,
 
     /* Name some parameters. */
     int bytelen_red = bitlen2bytelen(red);
-    int bytelen_tmpkey = max(keys->bytelen_go,32);
+    int bytelen_rec = bitlen2bytelen(rec);
+    int bytelen_tmpkey = bytelen_rec;
 
     BN_CTX *bnctx = BN_CTX_new();
     assert(bnctx != NULL);
