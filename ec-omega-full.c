@@ -186,7 +186,7 @@ final:
 
 const char *ECOMG2_get_name()
 {
-    return "EC-Omega";
+    return "ECOMG-aes256cbc";
 }
 
 

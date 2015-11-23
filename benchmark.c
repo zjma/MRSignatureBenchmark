@@ -105,15 +105,18 @@ static Scheme * get_scheme_by_id(int schid)
 //    case SCHID_AO:
 //        sch = Scheme_new(&AOMethods);
 //        break;
-//    case SCHID_ECAO:
-//        sch = Scheme_new(&ECAOMethods);
-//        break;
+    case SCHID_ECAO:
+        sch = Scheme_new(&ECAO_Methods);
+        break;
 //    case SCHID_PV:
 //        sch = Scheme_new(&PVMethods);
 //        break;
-//    case SCHID_ECPV:
-//        sch = Scheme_new(&ECPVMethods);
-//        break;
+    case SCHID_ECPV1:
+        sch = Scheme_new(&ECPV1_Methods);
+        break;
+    case SCHID_ECPV0:
+        sch = Scheme_new(&ECPV0_Methods);
+        break;
 //    case SCHID_OMG:
 //        sch = Scheme_new(&OmegaMethods);
 //        break;

@@ -183,7 +183,7 @@ final:
 
 const char *ECOMG0_get_name()
 {
-    return "EC-Omega";
+    return "ECOMG-plain";
 }
 
 

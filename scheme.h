@@ -36,9 +36,9 @@ extern SchemeMethods PVMethods;
 extern SchemeMethods ECOMG2_Methods;
 extern SchemeMethods ECOMG1_Methods;
 extern SchemeMethods ECOMG0_Methods;
-extern SchemeMethods ECAOMethods;
-extern SchemeMethods ECPV1Methods;
-extern SchemeMethods ECPV0Methods;
+extern SchemeMethods ECAO_Methods;
+extern SchemeMethods ECPV1_Methods;
+extern SchemeMethods ECPV0_Methods;
 
 
 /* A structure to hold a scheme. */

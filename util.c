@@ -71,6 +71,19 @@ int DoAES256CBC_fixIV(unsigned char *key,
     return 0;
 }
 
+int DoAES256CBC_DEC_fixIV(char *key,
+        const char *ctxt, int clen,
+        char *ptxt, int *plen)
+{
+    int len = 0;
+    EVP_DecryptInit_ex(crypter, EVP_aes_256_cbc(), NULL, key, IV);
+    EVP_DecryptUpdate(crypter, ptxt, &len, ctxt, clen);
+    *plen = len;
+    EVP_DecryptFinal_ex(crypter, ptxt+len, &len);
+    *plen += len;
+    return 0;
+}
+
 int VHash(const unsigned char *msg, int msglen,
         unsigned char *dst, int dstlen)
 {

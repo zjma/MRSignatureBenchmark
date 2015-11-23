@@ -40,6 +40,10 @@ int DoAES256CBC_fixIV(char *key,
         const char *ptxt, int plen,
         char *ctxt, int *clen);
 
+int DoAES256CBC_DEC_fixIV(char *key,
+        const char *ctxt, int clen,
+        char *ptxt, int *plen);
+
 int VHash(const char *msg, int msglen, char *dst, int dstlen);
 
 int BinXor(const char *s0, const char *s1, char *d, int len);

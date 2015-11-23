@@ -186,7 +186,7 @@ final:
 
 const char *ECOMG1_get_name()
 {
-    return "EC-Omega";
+    return "ECOMG-xor";
 }
 
 
