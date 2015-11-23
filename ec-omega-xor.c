@@ -40,7 +40,6 @@ struct ECOMG1_SignSess
     BIGNUM*         e1;
     BIGNUM*         e1w;
 
-//    BN_CTX*         bnctx;
 };
 
 
@@ -57,7 +56,6 @@ struct ECOMG1_VrfySess
     unsigned char*  red_n_key;
     unsigned char*  m_rec;
     int             bytelen_rec;
-//    BN_CTX*         bnctx;
 };
 
 
@@ -161,12 +159,6 @@ void ECOMG1_keypair_free(void *obj)
 int ECOMG1_keypair_gen(int sec, void *obj)
 {
     int ret = 0;
-    BN_CTX *bnctx = BN_CTX_new();
-    if (bnctx == NULL)
-    {
-        ret = -1;
-        goto final;
-    }
 
     ECOMG1_KeyPair *keypair = (ECOMG1_KeyPair*)obj;
     ret = EC_KEY_generate_key(keypair->eckey);
@@ -187,7 +179,6 @@ int ECOMG1_keypair_gen(int sec, void *obj)
     ret = 0;
 
 final:
-    BN_CTX_free(bnctx);
 
     return ret;
 }
@@ -229,7 +220,6 @@ void *ECOMG1_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitl
     flag = sess->e1 = BN_new();if (flag == NULL) goto err;
     flag = sess->e1w = BN_new();if (flag == NULL) goto err;
 
-//    flag = sess->bnctx = BN_CTX_new();if (flag == NULL) goto err;
     return sess;
 err:
     ECOMG1_signsess_free(sess);
@@ -252,7 +242,6 @@ void ECOMG1_signsess_free(void* obj)
     free(sess->e1_bytes);
     BN_free(sess->e1);
     BN_free(sess->e1w);
-//    BN_CTX_free(sess->bnctx);
     free(sess);
 }
 
@@ -279,7 +268,6 @@ void *ECOMG1_vrfysess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitl
     flag = sess->A_bytes = malloc(keypair->bytelen_point+1);if(flag==NULL) goto err;
     flag = sess->red_n_key = malloc(bytelen_red+bytelen_tmpkey);if(flag==NULL) goto err;
     flag = sess->m_rec = malloc(bytelen_rec);if(flag==NULL) goto err;
-//    flag = sess->bnctx = BN_CTX_new();if (flag==NULL) goto err;
     return sess;
 err:
     ECOMG1_vrfysess_free(sess);
@@ -300,7 +288,6 @@ void ECOMG1_vrfysess_free(void* obj)
     free(sess->A_bytes);
     free(sess->red_n_key);
     free(sess->m_rec);
-//    BN_CTX_free(sess->bnctx);
     free(sess);
 }
 
@@ -396,9 +383,6 @@ int ECOMG1_sign_offline(int clr, int rec, int red,
     int bytelen_rec = bitlen2bytelen(rec);
     int bytelen_tmpkey = bytelen_rec;
 
-    BN_CTX *bnctx = BN_CTX_new();
-    assert(bnctx != NULL);
-
     /* Pick r */
     ret = BN_rand_range(sess->r, keys->group_order);
     assert(ret==1);
@@ -437,7 +421,6 @@ int ECOMG1_sign_offline(int clr, int rec, int red,
             keys->group_order, bnctx);
     assert(ret==1);
 
-    BN_CTX_free(bnctx);
     return 0;
 }
 
@@ -461,9 +444,6 @@ int ECOMG1_sign_online(int clr, int rec, int red,
     const unsigned char *m_rec = msg+bytelen_clr;
     unsigned char *tmpkey = sess->red_n_key+bytelen_red;
 
-    BN_CTX *bnctx = BN_CTX_new();
-    assert(bnctx!=NULL);
-
     /* Compute covered = tmpkey XOR m_rec) */
     BinXor(tmpkey, m_rec, sig->covered, bytelen_rec);
 
@@ -474,8 +454,7 @@ int ECOMG1_sign_online(int clr, int rec, int red,
     assert(ret==0);
 
     /* Convert e1_bytes to e1 */
-    BIGNUM *rbn = BN_bin2bn(sess->e1_bytes, keys->bytelen_go, sess->e1);
-    assert(rbn!=NULL);
+    BN_bin2bn(sess->e1_bytes, keys->bytelen_go, sess->e1);
 
     /* Compute z=re0w - e1*w */
     ret = BN_mod_mul(sess->e1w, sess->e1, keys->sk, keys->group_order, bnctx);
@@ -484,8 +463,6 @@ int ECOMG1_sign_online(int clr, int rec, int red,
     assert(ret==1);
 
     memcpy(sig->m_clr, m_clr, bytelen_clr);
-
-    BN_CTX_free(bnctx);
 
     return 0;
 }
@@ -509,9 +486,6 @@ int ECOMG1_vrfy_online(int clr, int rec, int red,
     /* Name some parameters. */
     int bytelen_red = sig->bytelen_red;
     int bytelen_tmpkey = sig->bytelen_covered;
-
-    BN_CTX *bnctx = BN_CTX_new();
-    assert(bnctx!=NULL);
 
     /* Derive e0 from redun. */
     BN_bin2bn(sig->redun, sig->bytelen_red, sess->e0);
@@ -553,8 +527,6 @@ int ECOMG1_vrfy_online(int clr, int rec, int red,
 
     /* Compute m_rec = tmpkey XOR covered)*/
     //TODO
-
-    BN_CTX_free(bnctx);
 
     return 0;
 }

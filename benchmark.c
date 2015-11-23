@@ -124,7 +124,7 @@ static Scheme * get_scheme_by_id(int schid)
         sch = Scheme_new(&ECOMG1_Methods);
         break;
     case SCHID_ECOMG0:
-        sch = Scheme_new(&ECOMG1_Methods);
+        sch = Scheme_new(&ECOMG0_Methods);
         break;
     }
     return sch;

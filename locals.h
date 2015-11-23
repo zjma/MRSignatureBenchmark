@@ -55,4 +55,7 @@ int InitCrypt();
 int CleanCrypt();
 
 #define max(a,b) ((a>b)?a:b)
+
+extern BN_CTX *bnctx;
+
 #endif

@@ -18,6 +18,9 @@ unsigned char *_Q[2] = {
     "\xF5\x18\xAA\x87\x81\xA8\xDF\x27\x8A\xBA\x4E\x7D\x64\xB7\xCB\x9D\x49\x46\x23\x53",// 20 bytes
     "\x8C\xF8\x36\x42\xA7\x09\xA0\x97\xB4\x47\x99\x76\x40\x12\x9D\xA2\x99\xB1\xA4\x7D\x1E\xB3\x75\x0B\xA3\x08\xB0\xFE\x64\xF5\xFB\xD3"//32 bytes
 };
+
+BN_CTX *bnctx = NULL;
+
 static unsigned char AESKEY[32];
 static unsigned char *IV = "0123456789abcdef";
 static unsigned char tmpbuf[1024];
@@ -29,12 +32,15 @@ int InitCrypt()
 {
     crypter = EVP_CIPHER_CTX_new();
     hasher = EVP_MD_CTX_create();
+    bnctx = BN_CTX_new();
+    assert(bnctx != NULL);
     assert(crypter!=NULL);
     assert(hasher!=NULL);
 }
 
 int CleanCrypt()
 {
+    BN_CTX_free(bnctx);
     EVP_MD_CTX_cleanup(hasher);
     EVP_MD_CTX_destroy(hasher);
 

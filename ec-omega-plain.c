@@ -38,8 +38,6 @@ struct ECOMG0_SignSess
     unsigned char*  e1_bytes;
     BIGNUM*         e1;
     BIGNUM*         e1w;
-
-//    BN_CTX*         bnctx;
 };
 
 
@@ -56,7 +54,6 @@ struct ECOMG0_VrfySess
     unsigned char*  redun;
     unsigned char*  m_rec;
     int             bytelen_rec;
-//    BN_CTX*         bnctx;
 };
 
 
@@ -160,12 +157,6 @@ void ECOMG0_keypair_free(void *obj)
 int ECOMG0_keypair_gen(int sec, void *obj)
 {
     int ret = 0;
-    BN_CTX *bnctx = BN_CTX_new();
-    if (bnctx == NULL)
-    {
-        ret = -1;
-        goto final;
-    }
 
     ECOMG0_KeyPair *keypair = (ECOMG0_KeyPair*)obj;
     ret = EC_KEY_generate_key(keypair->eckey);
@@ -186,8 +177,6 @@ int ECOMG0_keypair_gen(int sec, void *obj)
     ret = 0;
 
 final:
-    BN_CTX_free(bnctx);
-
     return ret;
 }
 
@@ -220,13 +209,12 @@ void *ECOMG0_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitl
     flag = sess->e0w = BN_new();if (flag == NULL) goto err;
     flag = sess->re0w = BN_new();if (flag == NULL) goto err;
 
-    int bytelen_d1 = AES128CBC_fixIV_cipher_len(bytelen_rec);
+    int bytelen_d1 = bytelen_rec;
     flag = sess->mclrcov = malloc(bytelen_clr + bytelen_d1);if (flag == NULL) goto err;
     flag = sess->e1_bytes = malloc(keypair->bytelen_go);if (flag == NULL) goto err;
     flag = sess->e1 = BN_new();if (flag == NULL) goto err;
     flag = sess->e1w = BN_new();if (flag == NULL) goto err;
 
-//    flag = sess->bnctx = BN_CTX_new();if (flag == NULL) goto err;
     return sess;
 err:
     ECOMG0_signsess_free(sess);
@@ -248,7 +236,6 @@ void ECOMG0_signsess_free(void* obj)
     free(sess->e1_bytes);
     BN_free(sess->e1);
     BN_free(sess->e1w);
-//    BN_CTX_free(sess->bnctx);
     free(sess);
 }
 
@@ -274,7 +261,6 @@ void *ECOMG0_vrfysess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitl
     flag = sess->A_bytes = malloc(keypair->bytelen_point+1);if(flag==NULL) goto err;
     flag = sess->redun = malloc(bytelen_red);if(flag==NULL) goto err;
     flag = sess->m_rec = malloc(bytelen_rec);if(flag==NULL) goto err;
-//    flag = sess->bnctx = BN_CTX_new();if (flag==NULL) goto err;
     return sess;
 err:
     ECOMG0_vrfysess_free(sess);
@@ -295,7 +281,6 @@ void ECOMG0_vrfysess_free(void* obj)
     free(sess->A_bytes);
     free(sess->redun);
     free(sess->m_rec);
-//    BN_CTX_free(sess->bnctx);
     free(sess);
 }
 
@@ -352,7 +337,7 @@ int ECOMG0_get_sig_len(int clr, int rec, int red, void *obj)
     int bytelen_clr = bitlen2bytelen(clr);
     int bytelen_red = bitlen2bytelen(red);
     int bytelen_rec = bitlen2bytelen(rec);
-    return 16+bytelen_clr+bytelen_red+AES128CBC_fixIV_cipher_len(bytelen_rec)+sig->bytelen_z;
+    return 16+bytelen_clr+bytelen_red+bytelen_rec+sig->bytelen_z;
 }
 
 
@@ -362,7 +347,7 @@ int ECOMG0_sig_encode(int clr, int rec, int red, void *obj, unsigned char *buf)
     int bytelen_clr = bitlen2bytelen(clr);
     int bytelen_red = bitlen2bytelen(red);
     int bytelen_rec = bitlen2bytelen(rec);
-    int bytelen_covered = AES128CBC_fixIV_cipher_len(bytelen_rec);
+    int bytelen_covered = bytelen_rec;
     int bytelen_z = sig->bytelen_z;
 
     unsigned char *c = buf;
@@ -388,9 +373,6 @@ int ECOMG0_sign_offline(int clr, int rec, int red,
 
     /* Name some parameters. */
     int bytelen_red = bitlen2bytelen(red);
-
-    BN_CTX *bnctx = BN_CTX_new();
-    assert(bnctx != NULL);
 
     /* Pick r */
     ret = BN_rand_range(sess->r, keys->group_order);
@@ -427,7 +409,6 @@ int ECOMG0_sign_offline(int clr, int rec, int red,
             keys->group_order, bnctx);
     assert(ret==1);
 
-    BN_CTX_free(bnctx);
     return 0;
 }
 
@@ -450,9 +431,6 @@ int ECOMG0_sign_online(int clr, int rec, int red,
     const unsigned char *m_clr = msg;
     const unsigned char *m_rec = msg+bytelen_clr;
 
-    BN_CTX *bnctx = BN_CTX_new();
-    assert(bnctx!=NULL);
-
     /* Compute covered = m_rec */
     memcpy(sig->covered, m_rec, bytelen_rec);
 
@@ -463,8 +441,7 @@ int ECOMG0_sign_online(int clr, int rec, int red,
     assert(ret==0);
 
     /* Convert e1_bytes to e1 */
-    BIGNUM *rbn = BN_bin2bn(sess->e1_bytes, keys->bytelen_go, sess->e1);
-    assert(rbn!=NULL);
+    BN_bin2bn(sess->e1_bytes, keys->bytelen_go, sess->e1);
 
     /* Compute z=re0w - e1*w */
     ret = BN_mod_mul(sess->e1w, sess->e1, keys->sk, keys->group_order, bnctx);
@@ -473,8 +450,6 @@ int ECOMG0_sign_online(int clr, int rec, int red,
     assert(ret==1);
 
     memcpy(sig->m_clr, m_clr, bytelen_clr);
-
-    BN_CTX_free(bnctx);
 
     return 0;
 }
@@ -497,9 +472,6 @@ int ECOMG0_vrfy_online(int clr, int rec, int red,
 
     /* Name some parameters. */
     int bytelen_red = sig->bytelen_red;
-
-    BN_CTX *bnctx = BN_CTX_new();
-    assert(bnctx!=NULL);
 
     /* Derive e0 from redun. */
     BN_bin2bn(sig->redun, sig->bytelen_red, sess->e0);
@@ -535,8 +507,6 @@ int ECOMG0_vrfy_online(int clr, int rec, int red,
 
     /* Get m_rec */
     //TODO
-
-    BN_CTX_free(bnctx);
 
     return 0;
 }
