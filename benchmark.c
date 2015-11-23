@@ -123,6 +123,9 @@ static Scheme * get_scheme_by_id(int schid)
     case SCHID_ECOMG1:
         sch = Scheme_new(&ECOMG1_Methods);
         break;
+    case SCHID_ECOMG0:
+        sch = Scheme_new(&ECOMG1_Methods);
+        break;
     }
     return sch;
 }
@@ -199,5 +202,6 @@ int test(int schid, int bitlen_sec,
 //    SignSession_free(signsess);
 //    VrfySession_free(vrfysess);
 //    Signature_free(sig);
+    free(sch);
     return 0;
 }

@@ -13,8 +13,8 @@ int main(int argc, char **argv)
 
     int sch_id = SCHID_ECOMG2;
     int bitlen_sec = 256;
-    int bitlen_rec = 512;
-    int bitlen_red = 80;
+    int bitlen_rec = 256;
+    int bitlen_red = 256;
     int bitlen_clr = 0;
     int sigcount = 1000;
 
