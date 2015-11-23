@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 {
     int i;
 
-    int sch_id = SCHID_ECOMG;
+    int sch_id = SCHID_ECOMG2;
     int bitlen_sec = 256;
     int bitlen_rec = 512;
     int bitlen_red = 80;
@@ -62,10 +62,16 @@ int main(int argc, char **argv)
                 sch_id = SCHID_OMG;
             else if (strcmp(argv[i], "ecao") == 0)
                 sch_id = SCHID_ECAO;
-            else if (strcmp(argv[i], "ecpv") == 0)
-                sch_id = SCHID_ECPV;
-            else if (strcmp(argv[i], "ecomg") == 0)
-                sch_id = SCHID_ECOMG;
+            else if (strcmp(argv[i], "ecpv1") == 0)
+                sch_id = SCHID_ECPV1;
+            else if (strcmp(argv[i], "ecpv0") == 0)
+                sch_id = SCHID_ECPV0;
+            else if (strcmp(argv[i], "ecomg2") == 0)
+                sch_id = SCHID_ECOMG2;
+            else if (strcmp(argv[i], "ecomg1") == 0)
+                sch_id = SCHID_ECOMG1;
+            else if (strcmp(argv[i], "ecomg0") == 0)
+                sch_id = SCHID_ECOMG0;
             else
                 assert(0);
         }

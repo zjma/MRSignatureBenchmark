@@ -11,8 +11,8 @@
 #include "locals.h"
 
 
-typedef struct ECOMG_KeyPair ECOMG_KeyPair;
-struct ECOMG_KeyPair
+typedef struct ECOMG1_KeyPair ECOMG1_KeyPair;
+struct ECOMG1_KeyPair
 {
     EC_KEY*         eckey;
     const EC_GROUP* group;
@@ -24,14 +24,13 @@ struct ECOMG_KeyPair
 };
 
 
-typedef struct ECOMG_SignSess ECOMG_SignSess;
-struct ECOMG_SignSess
+typedef struct ECOMG1_SignSess ECOMG1_SignSess;
+struct ECOMG1_SignSess
 {
     BIGNUM*         r;
     EC_POINT*       A;
     unsigned char*  A_bytes;
     unsigned char*  red_n_key;
-    unsigned char*  tmpkey;
     BIGNUM*         e0;
     BIGNUM*         e0w;
     BIGNUM*         re0w;
@@ -45,8 +44,8 @@ struct ECOMG_SignSess
 };
 
 
-typedef struct ECOMG_VrfySess ECOMG_VrfySess;
-struct ECOMG_VrfySess
+typedef struct ECOMG1_VrfySess ECOMG1_VrfySess;
+struct ECOMG1_VrfySess
 {
     BIGNUM*         e0;
     unsigned char*  mclrcov;
@@ -62,8 +61,8 @@ struct ECOMG_VrfySess
 };
 
 
-typedef struct ECOMG_Sig ECOMG_Sig;
-struct ECOMG_Sig
+typedef struct ECOMG1_Sig ECOMG1_Sig;
+struct ECOMG1_Sig
 {
     int             bytelen_clr;
     int             bytelen_covered;
@@ -76,34 +75,34 @@ struct ECOMG_Sig
 };
 
 
-void *ECOMG_keypair_new(int sec);
-void ECOMG_keypair_free(void *obj);
-int ECOMG_keypair_gen(int sec, void *obj);
-const char *ECOMG_get_name();
-void *ECOMG_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
-void ECOMG_signsess_free(void* obj);
-void *ECOMG_vrfysess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
-void ECOMG_vrfysess_free(void* obj);
-void *ECOMG_signature_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
-void ECOMG_signature_free(void* obj);
-int ECOMG_get_sig_len(int clr, int rec, int red, void *obj);
-int ECOMG_sig_encode(int clr, int rec, int red, void *obj, unsigned char *buf);
-int ECOMG_sign_offline(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj);
-int ECOMG_sign_online(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj, const unsigned char *msg, int msglen);
-int ECOMG_vrfy_offline(int clr, int rec, int red, void *keyobj, void *sessobj);
-int ECOMG_vrfy_online(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj);
+void *ECOMG1_keypair_new(int sec);
+void ECOMG1_keypair_free(void *obj);
+int ECOMG1_keypair_gen(int sec, void *obj);
+const char *ECOMG1_get_name();
+void *ECOMG1_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
+void ECOMG1_signsess_free(void* obj);
+void *ECOMG1_vrfysess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
+void ECOMG1_vrfysess_free(void* obj);
+void *ECOMG1_signature_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red);
+void ECOMG1_signature_free(void* obj);
+int ECOMG1_get_sig_len(int clr, int rec, int red, void *obj);
+int ECOMG1_sig_encode(int clr, int rec, int red, void *obj, unsigned char *buf);
+int ECOMG1_sign_offline(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj);
+int ECOMG1_sign_online(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj, const unsigned char *msg, int msglen);
+int ECOMG1_vrfy_offline(int clr, int rec, int red, void *keyobj, void *sessobj);
+int ECOMG1_vrfy_online(int clr, int rec, int red, void *keyobj, void *sessobj, void *sigobj);
 
 
-void *ECOMG_keypair_new(int sec)
+void *ECOMG1_keypair_new(int sec)
 {
     BIGNUM *w = NULL;
     BIGNUM *group_order = NULL;
     EC_POINT *h = NULL;
     EC_KEY *eckey = NULL;
 
-    ECOMG_KeyPair *ret = NULL;
+    ECOMG1_KeyPair *ret = NULL;
 
-    ret = malloc(sizeof(ECOMG_KeyPair));
+    ret = malloc(sizeof(ECOMG1_KeyPair));
     if (ret == NULL) goto err;
 
     switch(sec)
@@ -150,16 +149,16 @@ err:
 }
 
 
-void ECOMG_keypair_free(void *obj)
+void ECOMG1_keypair_free(void *obj)
 {
-    ECOMG_KeyPair *keypair = (ECOMG_KeyPair*)obj;
+    ECOMG1_KeyPair *keypair = (ECOMG1_KeyPair*)obj;
     EC_KEY_free(keypair->eckey);
     BN_free(keypair->group_order);
     free(keypair);
 }
 
 
-int ECOMG_keypair_gen(int sec, void *obj)
+int ECOMG1_keypair_gen(int sec, void *obj)
 {
     int ret = 0;
     BN_CTX *bnctx = BN_CTX_new();
@@ -169,7 +168,7 @@ int ECOMG_keypair_gen(int sec, void *obj)
         goto final;
     }
 
-    ECOMG_KeyPair *keypair = (ECOMG_KeyPair*)obj;
+    ECOMG1_KeyPair *keypair = (ECOMG1_KeyPair*)obj;
     ret = EC_KEY_generate_key(keypair->eckey);
     if (ret == 0)
     {
@@ -194,20 +193,20 @@ final:
 }
 
 
-const char *ECOMG_get_name()
+const char *ECOMG1_get_name()
 {
     return "EC-Omega";
 }
 
 
-void *ECOMG_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red)
+void *ECOMG1_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red)
 {
-    ECOMG_KeyPair *keypair = (ECOMG_KeyPair*)keyobj;
+    ECOMG1_KeyPair *keypair = (ECOMG1_KeyPair*)keyobj;
 
-    ECOMG_SignSess *sess = malloc(sizeof(ECOMG_SignSess));
+    ECOMG1_SignSess *sess = malloc(sizeof(ECOMG1_SignSess));
     if (sess == NULL) return NULL;
 
-    memset(sess, 0, sizeof(ECOMG_SignSess));
+    memset(sess, 0, sizeof(ECOMG1_SignSess));
 
     void *flag = NULL;
     flag = sess->r = BN_new();if (flag == NULL) goto err;
@@ -217,10 +216,9 @@ void *ECOMG_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitle
     int bytelen_red = (bitlen_red+7)/8;
     int bytelen_rec = (bitlen_rec+7)/8;
     int bytelen_clr = (bitlen_clr+7)/8;
-    int bytelen_tmpkey = max(keypair->bytelen_go,32);
+    int bytelen_tmpkey = bytelen_red+bytelen_rec;
 
-    flag = sess->red_n_key = malloc(bytelen_red+bytelen_tmpkey);if (flag == NULL) goto err;
-    flag = sess->tmpkey = malloc(keypair->bytelen_go);if (flag == NULL) goto err;
+    flag = sess->red_n_key = malloc(bytelen_tmpkey);if (flag == NULL) goto err;
     flag = sess->e0 = BN_new();if (flag == NULL) goto err;
     flag = sess->e0w = BN_new();if (flag == NULL) goto err;
     flag = sess->re0w = BN_new();if (flag == NULL) goto err;
@@ -234,20 +232,19 @@ void *ECOMG_signsess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitle
 //    flag = sess->bnctx = BN_CTX_new();if (flag == NULL) goto err;
     return sess;
 err:
-    ECOMG_signsess_free(sess);
+    ECOMG1_signsess_free(sess);
     return NULL;
 }
 
 
-void ECOMG_signsess_free(void* obj)
+void ECOMG1_signsess_free(void* obj)
 {
     if (obj == NULL) return;
-    ECOMG_SignSess *sess = (ECOMG_SignSess*)obj;
+    ECOMG1_SignSess *sess = (ECOMG1_SignSess*)obj;
     BN_free(sess->r);
     EC_POINT_free(sess->A);
     free(sess->A_bytes);
     free(sess->red_n_key);
-    free(sess->tmpkey);
     BN_free(sess->e0);
     BN_free(sess->e0w);
     BN_free(sess->re0w);
@@ -260,18 +257,18 @@ void ECOMG_signsess_free(void* obj)
 }
 
 
-void *ECOMG_vrfysess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red)
+void *ECOMG1_vrfysess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red)
 {
-    ECOMG_KeyPair *keypair = (ECOMG_KeyPair*)keyobj;
-    ECOMG_VrfySess *sess = malloc(sizeof(ECOMG_VrfySess));
+    ECOMG1_KeyPair *keypair = (ECOMG1_KeyPair*)keyobj;
+    ECOMG1_VrfySess *sess = malloc(sizeof(ECOMG1_VrfySess));
     if (sess == NULL) return NULL;
-    memset(sess, 0, sizeof(ECOMG_VrfySess));
+    memset(sess, 0, sizeof(ECOMG1_VrfySess));
 
     int bytelen_red = (bitlen_red+7)/8;
     int bytelen_clr = bitlen2bytelen(bitlen_clr);
     int bytelen_rec = bitlen2bytelen(bitlen_rec);
-    int bytelen_covered = AES128CBC_fixIV_cipher_len(bytelen_rec);
-    int bytelen_tmpkey = max(keypair->bytelen_go,32);
+    int bytelen_covered = bytelen_rec;
+    int bytelen_tmpkey = bytelen_rec+bytelen_clr;
     void *flag = NULL;
     flag = sess->e1_bytes = malloc(keypair->bytelen_go);if(flag==NULL) goto err;
     flag = sess->mclrcov = malloc(bytelen_clr+bytelen_covered);if(flag==NULL) goto err;
@@ -285,15 +282,15 @@ void *ECOMG_vrfysess_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitle
 //    flag = sess->bnctx = BN_CTX_new();if (flag==NULL) goto err;
     return sess;
 err:
-    ECOMG_vrfysess_free(sess);
+    ECOMG1_vrfysess_free(sess);
     return NULL;
 }
 
 
-void ECOMG_vrfysess_free(void* obj)
+void ECOMG1_vrfysess_free(void* obj)
 {
     if (obj == NULL) return;
-    ECOMG_VrfySess *sess = (ECOMG_VrfySess*)obj;
+    ECOMG1_VrfySess *sess = (ECOMG1_VrfySess*)obj;
     free(sess->mclrcov);
     free(sess->e1_bytes);
     BN_free(sess->e0);
@@ -308,16 +305,16 @@ void ECOMG_vrfysess_free(void* obj)
 }
 
 
-void *ECOMG_signature_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red)
+void *ECOMG1_signature_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitlen_red)
 {
-    ECOMG_KeyPair *keypair = (ECOMG_KeyPair*)keyobj;
-    ECOMG_Sig *sig = malloc(sizeof(ECOMG_Sig));
+    ECOMG1_KeyPair *keypair = (ECOMG1_KeyPair*)keyobj;
+    ECOMG1_Sig *sig = malloc(sizeof(ECOMG1_Sig));
     if (sig == NULL) return NULL;
 
     void *flag = NULL;
     int bytelen_red = (bitlen_red+7)/8;
     int bytelen_rec = (bitlen_rec+7)/8;
-    int bytelen_covered = AES128CBC_fixIV_cipher_len(bytelen_rec);
+    int bytelen_covered = bytelen_rec;
     int bytelen_clr = (bitlen_clr+7)/8;
     int bytelen_z = BN_bn2mpi(keypair->sk, NULL);
     flag = sig->m_clr = malloc(bytelen_clr);if (flag==NULL) goto err;
@@ -329,15 +326,15 @@ void *ECOMG_signature_new(void *keyobj, int bitlen_clr, int bitlen_rec, int bitl
     sig->bytelen_red = bytelen_red;
     return sig;
 err:
-    ECOMG_signature_free(sig);
+    ECOMG1_signature_free(sig);
     return NULL;
 }
 
 
-void ECOMG_signature_free(void* obj)
+void ECOMG1_signature_free(void* obj)
 {
     if (obj == NULL) return;
-    ECOMG_Sig *sig = (ECOMG_Sig*)obj;
+    ECOMG1_Sig *sig = (ECOMG1_Sig*)obj;
     free(sig->m_clr);
     free(sig->covered);
     free(sig->redun);
@@ -354,9 +351,9 @@ void ECOMG_signature_free(void* obj)
  */
 
 
-int ECOMG_get_sig_len(int clr, int rec, int red, void *obj)
+int ECOMG1_get_sig_len(int clr, int rec, int red, void *obj)
 {
-    ECOMG_Sig *sig = (ECOMG_Sig*)obj;
+    ECOMG1_Sig *sig = (ECOMG1_Sig*)obj;
     int bytelen_clr = bitlen2bytelen(clr);
     int bytelen_red = bitlen2bytelen(red);
     int bytelen_rec = bitlen2bytelen(rec);
@@ -364,9 +361,9 @@ int ECOMG_get_sig_len(int clr, int rec, int red, void *obj)
 }
 
 
-int ECOMG_sig_encode(int clr, int rec, int red, void *obj, unsigned char *buf)
+int ECOMG1_sig_encode(int clr, int rec, int red, void *obj, unsigned char *buf)
 {
-    ECOMG_Sig *sig = (ECOMG_Sig*)obj;
+    ECOMG1_Sig *sig = (ECOMG1_Sig*)obj;
     int bytelen_clr = bitlen2bytelen(clr);
     int bytelen_red = bitlen2bytelen(red);
     int bytelen_rec = bitlen2bytelen(rec);
@@ -385,13 +382,13 @@ int ECOMG_sig_encode(int clr, int rec, int red, void *obj, unsigned char *buf)
 }
 
 
-int ECOMG_sign_offline(int clr, int rec, int red,
+int ECOMG1_sign_offline(int clr, int rec, int red,
         void *keyobj, void *sessobj, void *sigobj)
 {
     /* Rename objests. */
-    ECOMG_KeyPair *keys = (ECOMG_KeyPair*)keyobj;
-    ECOMG_SignSess *sess = (ECOMG_SignSess*)sessobj;
-    ECOMG_Sig *sig = (ECOMG_Sig*)sigobj;
+    ECOMG1_KeyPair *keys = (ECOMG1_KeyPair*)keyobj;
+    ECOMG1_SignSess *sess = (ECOMG1_SignSess*)sessobj;
+    ECOMG1_Sig *sig = (ECOMG1_Sig*)sigobj;
     int ret;
 
     /* Name some parameters. */
@@ -427,9 +424,6 @@ int ECOMG_sign_offline(int clr, int rec, int red,
     /* Get redun = DDF(a) from materials */
     memcpy(sig->redun, sess->red_n_key, bytelen_red);
 
-    /* Get key = KDF(a) from materials */
-    memcpy(sess->tmpkey, sess->red_n_key+bytelen_red, bytelen_tmpkey);
-
     /* Convert redun to e0*/
     BN_bin2bn(sig->redun, bytelen_red, sess->e0);
 
@@ -447,28 +441,30 @@ int ECOMG_sign_offline(int clr, int rec, int red,
 }
 
 
-int ECOMG_sign_online(int clr, int rec, int red,
+int ECOMG1_sign_online(int clr, int rec, int red,
         void *keyobj, void *sessobj, void *sigobj,
         const unsigned char *msg, int msglen)
 {
     /* Rename objects. */
-    ECOMG_KeyPair *keys = (ECOMG_KeyPair*)keyobj;
-    ECOMG_SignSess *sess = (ECOMG_SignSess*)sessobj;
-    ECOMG_Sig *sig = (ECOMG_Sig*)sigobj;
+    ECOMG1_KeyPair *keys = (ECOMG1_KeyPair*)keyobj;
+    ECOMG1_SignSess *sess = (ECOMG1_SignSess*)sessobj;
+    ECOMG1_Sig *sig = (ECOMG1_Sig*)sigobj;
     int ret;
 
-    /* Name som parameters. */
+    /* Name some parameters. */
     int bytelen_rec = bitlen2bytelen(rec);
-    int bytelen_covered = AES128CBC_fixIV_cipher_len(bytelen_rec);
+    int bytelen_covered = bytelen_rec;
+    int bytelen_red = bitlen2bytelen(red);
+    int bytelen_clr = msglen - bytelen_rec;
+    const unsigned char *m_clr = msg;
+    const unsigned char *m_rec = msg+bytelen_clr;
+    unsigned char *tmpkey = sess->red_n_key+bytelen_red;
 
     BN_CTX *bnctx = BN_CTX_new();
     assert(bnctx!=NULL);
 
-    /* Compute covered = Encrypt(tmpkey, m_rec) */
-    int clen;
-    DoAES256CBC_fixIV(sess->tmpkey, msg, bytelen_rec, sig->covered, &clen);
-    const unsigned char *m_clr = msg+bytelen_rec;
-    int bytelen_clr = msglen - bytelen_rec;
+    /* Compute covered = tmpkey XOR m_rec) */
+    BinXor(tmpkey, m_rec, sig->covered, bytelen_rec);
 
     /* Compute e1_bytes = Hash(m_clr, covered) */
     memcpy(sess->mclrcov, m_clr, bytelen_clr);
@@ -487,7 +483,6 @@ int ECOMG_sign_online(int clr, int rec, int red,
     assert(ret==1);
 
     memcpy(sig->m_clr, m_clr, bytelen_clr);
-    memcpy(sig->covered, sig->covered, bytelen_covered);
 
     BN_CTX_free(bnctx);
 
@@ -495,24 +490,24 @@ int ECOMG_sign_online(int clr, int rec, int red,
 }
 
 
-int ECOMG_vrfy_offline(int clr, int rec, int red,
+int ECOMG1_vrfy_offline(int clr, int rec, int red,
         void *keyobj, void *sessobj)
 {
     return 0;
 }
 
-int ECOMG_vrfy_online(int clr, int rec, int red,
+int ECOMG1_vrfy_online(int clr, int rec, int red,
         void *keyobj, void *sessobj, void *sigobj)
 {
     /* Rename objects. */
-    ECOMG_KeyPair *keys = (ECOMG_KeyPair*)keyobj;
-    ECOMG_VrfySess *sess = (ECOMG_VrfySess*)sessobj;
-    ECOMG_Sig *sig = (ECOMG_Sig*)sigobj;
+    ECOMG1_KeyPair *keys = (ECOMG1_KeyPair*)keyobj;
+    ECOMG1_VrfySess *sess = (ECOMG1_VrfySess*)sessobj;
+    ECOMG1_Sig *sig = (ECOMG1_Sig*)sigobj;
     int ret;
 
     /* Name some parameters. */
     int bytelen_red = sig->bytelen_red;
-    int bytelen_tmpkey = max(keys->bytelen_go,32);
+    int bytelen_tmpkey = sig->bytelen_covered;
 
     BN_CTX *bnctx = BN_CTX_new();
     assert(bnctx!=NULL);
@@ -550,12 +545,12 @@ int ECOMG_vrfy_online(int clr, int rec, int red,
 
     /* Check redun */
     ret = memcmp(sess->red_n_key, sig->redun, bytelen_red);
-    if (ret != 0) return -1;
+    assert(ret==0);//if (ret != 0) return -1;
 
     /* Get tmpkey=H(a_bytes) from materials. */
     unsigned char* tmpkey = sess->red_n_key+bytelen_red;
 
-    /* Compute m_rec = Decrypt(tmpkey, covered)*/
+    /* Compute m_rec = tmpkey XOR covered)*/
     //TODO
 
     BN_CTX_free(bnctx);
@@ -564,24 +559,24 @@ int ECOMG_vrfy_online(int clr, int rec, int red,
 }
 
 
-SchemeMethods ECOmegaMethods = 
+SchemeMethods ECOMG1_Methods =
 {
-    .mthd_keypair_new       = ECOMG_keypair_new,
-    .mthd_keypair_free      = ECOMG_keypair_free,
-    .mthd_keypair_gen       = ECOMG_keypair_gen,
-    .mthd_get_name          = ECOMG_get_name,
-    .mthd_signsess_new      = ECOMG_signsess_new,
-    .mthd_signsess_free     = ECOMG_signsess_free,
-    .mthd_vrfysess_new      = ECOMG_vrfysess_new,
-    .mthd_vrfysess_free     = ECOMG_vrfysess_free,
-    .mthd_signature_new     = ECOMG_signature_new,
-    .mthd_signature_free    = ECOMG_signature_free,
-    .mthd_get_sig_len       = ECOMG_get_sig_len,
-    .mthd_sig_encode        = ECOMG_sig_encode,
-    .mthd_sign_offline      = ECOMG_sign_offline,
-    .mthd_sign_online       = ECOMG_sign_online,
-    .mthd_vrfy_offline      = ECOMG_vrfy_offline,
-    .mthd_vrfy_online       = ECOMG_vrfy_online
+    .mthd_keypair_new       = ECOMG1_keypair_new,
+    .mthd_keypair_free      = ECOMG1_keypair_free,
+    .mthd_keypair_gen       = ECOMG1_keypair_gen,
+    .mthd_get_name          = ECOMG1_get_name,
+    .mthd_signsess_new      = ECOMG1_signsess_new,
+    .mthd_signsess_free     = ECOMG1_signsess_free,
+    .mthd_vrfysess_new      = ECOMG1_vrfysess_new,
+    .mthd_vrfysess_free     = ECOMG1_vrfysess_free,
+    .mthd_signature_new     = ECOMG1_signature_new,
+    .mthd_signature_free    = ECOMG1_signature_free,
+    .mthd_get_sig_len       = ECOMG1_get_sig_len,
+    .mthd_sig_encode        = ECOMG1_sig_encode,
+    .mthd_sign_offline      = ECOMG1_sign_offline,
+    .mthd_sign_online       = ECOMG1_sign_online,
+    .mthd_vrfy_offline      = ECOMG1_vrfy_offline,
+    .mthd_vrfy_online       = ECOMG1_vrfy_online
 };
 
 

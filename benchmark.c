@@ -116,8 +116,11 @@ static Scheme * get_scheme_by_id(int schid)
 //    case SCHID_OMG:
 //        sch = Scheme_new(&OmegaMethods);
 //        break;
-    case SCHID_ECOMG:
-        sch = Scheme_new(&ECOmegaMethods);
+    case SCHID_ECOMG2:
+        sch = Scheme_new(&ECOMG2_Methods);
+        break;
+    case SCHID_ECOMG1:
+        sch = Scheme_new(&ECOMG1_Methods);
         break;
     }
     return sch;

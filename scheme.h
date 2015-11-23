@@ -33,9 +33,12 @@ struct SchemeMethods
 extern SchemeMethods OmegaMethods;
 extern SchemeMethods AOMethods;
 extern SchemeMethods PVMethods;
-extern SchemeMethods ECOmegaMethods;
+extern SchemeMethods ECOMG2_Methods;
+extern SchemeMethods ECOMG1_Methods;
+extern SchemeMethods ECOMG0_Methods;
 extern SchemeMethods ECAOMethods;
-extern SchemeMethods ECPVMethods;
+extern SchemeMethods ECPV1Methods;
+extern SchemeMethods ECPV0Methods;
 
 
 /* A structure to hold a scheme. */

@@ -9,12 +9,15 @@
 #include <time.h>
 
 /* Scheme IDs in this project. */
-#define SCHID_OMG   0x0000
-#define SCHID_ECOMG 0x0e00
-#define SCHID_AO    0x0001
-#define SCHID_ECAO  0x0e01
-#define SCHID_PV    0x0002
-#define SCHID_ECPV  0x0e02
+#define SCHID_OMG       0x000000
+#define SCHID_ECOMG0    0x0e0000  // No covering
+#define SCHID_ECOMG1    0x0e0001  // XOR covering
+#define SCHID_ECOMG2    0x0e0002  // AES covering
+#define SCHID_AO        0x000100
+#define SCHID_ECAO      0x0e0100
+#define SCHID_PV        0x000200
+#define SCHID_ECPV0     0x0e0200  // XOR covering
+#define SCHID_ECPV1     0x0e0201  // AES covering
 
 
 /* Security levels in this project. */
