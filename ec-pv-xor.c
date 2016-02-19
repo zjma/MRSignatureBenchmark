@@ -418,7 +418,7 @@ int ECPV0_sign_online(int clr, int rec, int red,
     /* Compute e_bytes = Hash(m_clr, covered) */
     memcpy(sess->mclrcov, m_clr, bytelen_clr);
     memcpy(sess->mclrcov+bytelen_clr, sig->covered, bytelen_covered);
-    ret = VHash(sess->mclrcov, bytelen_clr+bytelen_covered, sess->e_bytes, keys->bytelen_go);
+    ret = PRG(sess->mclrcov, bytelen_clr+bytelen_covered, sess->e_bytes, keys->bytelen_go);
     assert(ret==0);
 
     /* Convert e_bytes to e */
@@ -459,7 +459,7 @@ int ECPV0_vrfy_online(int clr, int rec, int red,
     /* Compute e = H(m_clr||covered)*/
     memcpy(sess->mclrcov, sig->m_clr, sig->bytelen_clr);
     memcpy(sess->mclrcov+sig->bytelen_clr, sig->covered, sig->bytelen_covered);
-    VHash(sess->mclrcov, sig->bytelen_clr+sig->bytelen_covered,
+    PRG(sess->mclrcov, sig->bytelen_clr+sig->bytelen_covered,
             sess->e_bytes, keys->bytelen_go);
     BN_bin2bn(sess->e_bytes, keys->bytelen_go, sess->e);
 

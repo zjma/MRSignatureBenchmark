@@ -416,22 +416,22 @@ int ECAO_sign_online(int clr, int rec, int red,
 
     /* Compute red = H1(Abytes||m_rec) */
     memcpy(sess->Abytes_n_rec+sess->bytelen_A, m_rec, bytelen_rec);
-    VHash(sess->Abytes_n_rec, sess->bytelen_A+bytelen_rec,
+    PRG(sess->Abytes_n_rec, sess->bytelen_A+bytelen_rec,
             sig->covered, bytelen_red);
 
     /* Compute hv2 = H2(Abytes||red)*/
     memcpy(sess->Abytes_n_red+sess->bytelen_A, sig->covered, bytelen_red);
-    VHash(sess->Abytes_n_red, sess->bytelen_A+bytelen_red,
+    PRG(sess->Abytes_n_red, sess->bytelen_A+bytelen_red,
             sess->hv2, bytelen_rec);
 
     /* h2 = hv2 XOR m_rec */
     BinXor(sess->hv2, m_rec, sess->h2, bytelen_rec);
     memcpy(sig->covered+bytelen_red, sess->h2, bytelen_rec);
 
-    /* Compute e_bytes = H(covered||m_clr) */
-    memcpy(sess->mclrcov, sig->covered, bytelen_covered);
-    memcpy(sess->mclrcov+bytelen_covered, m_clr, bytelen_clr);
-    VHash(sess->mclrcov, bytelen_clr+bytelen_covered, sess->e_bytes, keys->bytelen_go);
+    /* Compute e_bytes = H(m_clr||covered) */
+    memcpy(sess->mclrcov, m_clr, bytelen_clr);
+    memcpy(sess->mclrcov+bytelen_clr, sig->covered, bytelen_covered);
+    PRG(sess->mclrcov, bytelen_clr+bytelen_covered, sess->e_bytes, keys->bytelen_go);
 
     /* Convert e_bytes to e */
     BN_bin2bn(sess->e_bytes, keys->bytelen_go, sess->e);
@@ -472,7 +472,7 @@ int ECAO_vrfy_online(int clr, int rec, int red,
     /* Compute e = H(m_clr||covered)*/
     memcpy(sess->mclrcov, sig->m_clr, sig->bytelen_clr);
     memcpy(sess->mclrcov+sig->bytelen_clr, sig->covered, sig->bytelen_covered);
-    VHash(sess->mclrcov, sig->bytelen_clr+sig->bytelen_covered,
+    PRG(sess->mclrcov, sig->bytelen_clr+sig->bytelen_covered,
             sess->e_bytes, keys->bytelen_go);
     BN_bin2bn(sess->e_bytes, keys->bytelen_go, sess->e);
 
@@ -493,14 +493,14 @@ int ECAO_vrfy_online(int clr, int rec, int red,
     /* hv2 = H2(Abytes||red)*/
     memcpy(sess->Abytes_n_red, sess->A_bytes, bytelen_A);
     memcpy(sess->Abytes_n_red+bytelen_A, sig->covered, bytelen_red);
-    VHash(sess->Abytes_n_red, bytelen_A+bytelen_red, sess->hv2, bytelen_rec);
+    PRG(sess->Abytes_n_red, bytelen_A+bytelen_red, sess->hv2, bytelen_rec);
 
     /* m_rec = hv2 XOR h2 */
     BinXor(sess->hv2, sig->covered+bytelen_red, m_rec, bytelen_rec);
 
     /* red = H1(Abytes||m_rec) */
     memcpy(sess->Abytes_n_rec, sess->A_bytes, bytelen_A);
-    VHash(sess->Abytes_n_rec, bytelen_A+bytelen_rec, sess->red, bytelen_red);
+    PRG(sess->Abytes_n_rec, bytelen_A+bytelen_rec, sess->red, bytelen_red);
 
     /* Check redun */
     ret = memcmp(sess->red, sig->covered, bytelen_red);
