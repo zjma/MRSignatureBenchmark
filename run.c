@@ -56,9 +56,9 @@ int main(int argc, char **argv)
     
     int sch_id = -1;
     int bitlen_sec = 256;
-    int bitlen_rec = 256;
-    int bitlen_red = 256;
-    int bitlen_clr = 0;
+    int bitlen_rec = 128;
+    int bitlen_red = 128;
+    int bitlen_clr = 128;
     int sigcount = 1000;
     int verbose=0;
     InitCrypt();
