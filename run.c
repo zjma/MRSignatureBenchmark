@@ -9,7 +9,7 @@
 void print_usage(){
     printf(
 "USAGE:\n"
-"   run     scheme [-sec n] [-clr lp] [-rec lr] [-red ld] [-count x]\n"
+"   run     [-v] scheme [-sec n] [-clr lp] [-rec lr] [-red ld] [-count x]\n"
 "\n"
 "DESCRIPTION\n"
 "   This program times a message recovery signature scheme you specified,\n"
@@ -38,7 +38,8 @@ void print_usage(){
 "               Default value is 128\n\n"
 "   -count x    specifies how many times you want to repeat.\n"
 "               x should ne any non-negative integer.\n"
-"               Default valuye is 1000.\n\n");
+"               Default valuye is 1000.\n\n"
+"   -v          verbose mode.\n\n");
 }
 
 
@@ -59,12 +60,16 @@ int main(int argc, char **argv)
     int bitlen_red = 256;
     int bitlen_clr = 0;
     int sigcount = 1000;
-
+    int verbose=0;
     InitCrypt();
 
     for (i=1; i<argc; i++)
     {
-        if (strcmp(argv[i], "-sec") == 0)
+        if (strcmp(argv[i], "-v")==0)
+        {
+            verbose=1;
+        }
+        else if (strcmp(argv[i], "-sec") == 0)
         {
             show_usage_and_exit_if(i==argc-1);
             i++;
@@ -124,7 +129,7 @@ int main(int argc, char **argv)
     clock_t son_tot = 0;
     clock_t v_tot = 0;
     clock_t von_tot = 0;
-    test(sch_id, bitlen_sec,
+    test(verbose,sch_id, bitlen_sec,
             bitlen_rec, bitlen_red, bitlen_clr, sigcount,
             &s_tot, &son_tot, &v_tot, &von_tot);
 

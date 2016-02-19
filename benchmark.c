@@ -1,7 +1,7 @@
 /**
  * \file benchmark.c
  */
-
+#include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -10,6 +10,18 @@
 #include "scheme.h"
 #include "benchmark.h"
 
+static struct timeval tm1;
+static struct timeval tm2;
+void timerstart(){gettimeofday(&tm1, NULL);}
+void timerstop(){gettimeofday(&tm2, NULL);}
+int getms(){
+    unsigned long long t = 1000 * (tm2.tv_sec - tm1.tv_sec) + (tm2.tv_usec - tm1.tv_usec) / 1000;
+    return t;
+}
+unsigned long long getus(){
+    unsigned long long t = 1000000 * (tm2.tv_sec - tm1.tv_sec) + (tm2.tv_usec - tm1.tv_usec);
+    return t;
+}
 int test_one(Scheme* sch,
 //        KeyPair *keypair, SignSession *signsess, VrfySession *vrfysess, Signature *sig,
         int bitlen_sec,
@@ -42,52 +54,53 @@ int test_one(Scheme* sch,
     unsigned char *msg = malloc(msglen);
     assert(msg != NULL);
 
-    c0 = clock();
-    // times(&t0);
+    //c0 = clock();
+    timerstart();
     ret = Scheme_sign_offline(sch, keypair, signsess, sig);
-    // times(&t1);
-    c1 = clock();
+    timerstop();
+    uint32_t soff=getus();
+    //c1 = clock();
 
     assert(ret >= 0);
 
-    c2 = clock();
-    // times(&t2);
+    //c2 = clock();
+    timerstart();
     ret = Scheme_sign_online(sch, keypair, signsess, sig, msg, msglen);
-    // times(&t3);
-    c3 = clock();
+    timerstop();
+    uint32_t son=getus();
+    //c3 = clock();
 
     assert(ret >= 0);
 
-    c4 = clock();
-    // times(&t4);
+    //c4 = clock();
+    timerstart();
     ret = Scheme_vrfy_offline(sch, keypair, vrfysess);
-    // times(&t5);
-    c5 = clock();
+    timerstop();
+    uint32_t voff=getus();
+    //c5 = clock();
 
     if (ret < 0) return -1;//assert(ret >= 0);
 
-    c6 = clock();
-    // times(&t6);
+    //c6 = clock();
+    timerstart();
     ret = Scheme_vrfy_online(sch, keypair, vrfysess, sig);
-    // times(&t7);
-    c7 = clock();
+    timerstop();
+    uint32_t von=getus();
+    //c7 = clock();
 
     if (ret < 0) return -1;//assert(ret >= 0);
-
+    
     /*
-    c0 = t0.tms_utime;
-    c1 = t1.tms_utime;
-    c2 = t2.tms_utime;
-    c3 = t3.tms_utime;
-    c4 = t4.tms_utime;
-    c5 = t5.tms_utime;
-    c6 = t6.tms_utime;
-    c7 = t7.tms_utime;
-    */
     *s_tot += c1-c0+c3-c2;
     *son_tot += c3-c2;
     *von_tot += c5-c4;
     *v_tot += c7-c6+c5-c4;
+    */
+
+    *s_tot += son+soff;
+    *son_tot += son;
+    *von_tot += von;
+    *v_tot += von+voff;
     KeyPair_free(keypair);
     SignSession_free(signsess);
     VrfySession_free(vrfysess);
@@ -134,7 +147,7 @@ static Scheme * get_scheme_by_id(int schid)
 }
 
 
-int test(int schid, int bitlen_sec,
+int test(int verbose, int schid, int bitlen_sec,
     int bitlen_rec, int bitlen_red, int bitlen_clr, int sign_count,
     clock_t *ret_sign_tot, clock_t *ret_sign_onl,
     clock_t *ret_vrfy_tot, clock_t *ret_vrfy_onl)
@@ -181,8 +194,9 @@ int test(int schid, int bitlen_sec,
     sign_online_total = 0;
     vrfy_total = 0;
     vrfy_online_total = 0;
-
-    for (i=0; i<sign_count; i++)
+    
+    int VB=8;
+    for (i=1; i<=sign_count; i++)
     {
         ret = test_one(sch,
                 //keypair, signsess, vrfysess, sig,
@@ -192,7 +206,11 @@ int test(int schid, int bitlen_sec,
                 &vrfy_total, &vrfy_online_total);
 
         assert(ret >= 0);
-        printf(".");
+        if (verbose&&i==VB) {
+            printf("%d ",i);
+            fflush(stdout);
+            VB*=2;
+        }
     }
     printf("\n");
 
