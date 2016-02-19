@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <openssl/evp.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -123,9 +124,23 @@ int BinXor(const unsigned char *s0, const unsigned char *s1, unsigned char *d, i
     assert(s0!=NULL);
     assert(s1!=NULL);
     assert(d!=NULL);
+    /*
     unsigned char *dend = d+len;
     for (; d<dend; d++)
         *d = (*(s0++)) ^ (*(s1++));
+    */
+    int len0=len-len%4;
+    int len1=len-len0;
+    int i=0;
+    for (i=0;i<len0;i+=4){
+        uint32_t *td=d+i;
+        uint32_t *ts0=s0+i;
+        uint32_t *ts1=s1+i;
+        *td=(*ts0)^(*ts1);
+    }
+    for (i=len0;i<len;++i){
+        d[i]=s0[i]^s1[i];
+    }
     return 0;
 }
 
