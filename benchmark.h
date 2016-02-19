@@ -29,6 +29,7 @@
  * Select a scheme, specify params, and run the scheme.
  *
  * \param verbose       Whether to enable verbose mode.
+ * \param breakpoint    Where to stop in one run?
  * \param schid         Which scheme? Use SCHID_* here.
  * \param bitlen_sec    Security parameter. Use SEC_* here.
  * \param bitlen_rec    Length of recoverable part (in bit).
@@ -43,7 +44,7 @@
  *
  * \return  0(OK), or -1(failed).
  */
-int test(int verbose, int schid, int bitlen_sec,
+int test(int verbose, int breakpoint, int schid, int bitlen_sec,
     int bitlen_rec, int bitlen_red, int bitlen_clr, int sign_count,
     clock_t *ret_sign_tot, clock_t *ret_sign_onl,
     clock_t *ret_vrfy_tot, clock_t *ret_vrfy_onl);
