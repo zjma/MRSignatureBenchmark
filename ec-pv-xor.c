@@ -18,6 +18,7 @@ struct ECPV0_KeyPair
     EC_KEY*         eckey;
     const EC_GROUP* group;
     BIGNUM*         group_order;
+    BN_RECP_CTX*    recp;
     const BIGNUM*   sk;              // private key
     const EC_POINT* PK;              // public key
     int             bytelen_go;
@@ -90,6 +91,7 @@ void *ECPV0_keypair_new(int sec)
 {
     BIGNUM *w = NULL;
     BIGNUM *group_order = NULL;
+    BN_RECP_CTX *recp=NULL;
     EC_POINT *h = NULL;
     EC_KEY *eckey = NULL;
 
@@ -126,8 +128,12 @@ void *ECPV0_keypair_new(int sec)
     group_order = BN_new();
     if (group_order == NULL) goto err;
 
+    recp = BN_RECP_CTX_new();
+    if (recp == NULL) goto err;
+
     ret->eckey = eckey;
     ret->group_order = group_order;
+    ret->recp = recp;
     ret->sk = NULL;
     ret->PK = NULL;
     ret->bytelen_go = 0;
@@ -137,6 +143,7 @@ err:
     EC_KEY_free(eckey);
     BN_free(w);
     BN_free(group_order);
+    BN_RECP_CTX_free(recp);
     EC_POINT_free(h);
     return NULL;
 }
@@ -147,6 +154,7 @@ void ECPV0_keypair_free(void *obj)
     ECPV0_KeyPair *keypair = (ECPV0_KeyPair*)obj;
     EC_KEY_free(keypair->eckey);
     BN_free(keypair->group_order);
+    BN_RECP_CTX_free(keypair->recp);
     free(keypair);
 }
 
@@ -166,6 +174,7 @@ int ECPV0_keypair_gen(int sec, void *obj)
     const EC_GROUP *grp = EC_KEY_get0_group(keypair->eckey);
     keypair->group = grp;
     EC_GROUP_get_order(grp, keypair->group_order, bnctx);
+    BN_RECP_CTX_set(keypair->recp, keypair->group_order, bnctx);
     keypair->sk = EC_KEY_get0_private_key(keypair->eckey);
     keypair->PK = EC_KEY_get0_public_key(keypair->eckey);
     keypair->bytelen_go = BN_num_bytes(keypair->group_order);
@@ -425,7 +434,8 @@ int ECPV0_sign_online(int clr, int rec, int red,
     BN_bin2bn(sess->e_bytes, keys->bytelen_go, sess->e);
 
     /* Compute z=r-e*w */
-    ret = BN_mod_mul(sess->ew, sess->e, keys->sk, keys->group_order, bnctx);
+//    ret = BN_mod_mul(sess->ew, sess->e, keys->sk, keys->group_order, bnctx);
+    ret = BN_mod_mul_reciprocal(sess->ew, sess->e, keys->sk, keys->recp, bnctx);
     assert(ret==1);
     ret = BN_mod_sub(sig->z, sess->r, sess->ew, keys->group_order, bnctx);
     assert(ret==1);
