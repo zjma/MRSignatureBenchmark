@@ -35,7 +35,8 @@
  * \param bitlen_rec    Length of recoverable part (in bit).
  * \param bitlen_red    Length of additional redundancy (in bit).
  * \param bitlen_clr    Length of plain part (in bit).
- * \param sign_count    How many signature to generate.
+ * \param sign_count    How many signatures to generate for one signer.
+ * \param user_count    How many signers.
  *
  * \param ret_sign_tot  Total signing time will go here.
  * \param ret_sign_onl  Online signing time will go here.
@@ -45,7 +46,8 @@
  * \return  0(OK), or -1(failed).
  */
 int test(int verbose, int breakpoint, int schid, int bitlen_sec,
-    int bitlen_rec, int bitlen_red, int bitlen_clr, int sign_count,
+    int bitlen_rec, int bitlen_red, int bitlen_clr,
+    int sign_count, int user_count,
     clock_t *ret_sign_tot, clock_t *ret_sign_onl,
     clock_t *ret_vrfy_tot, clock_t *ret_vrfy_onl);
 

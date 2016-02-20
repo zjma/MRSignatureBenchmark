@@ -22,7 +22,7 @@ unsigned long long getus(){
     unsigned long long t = 1000000 * (tm2.tv_sec - tm1.tv_sec) + (tm2.tv_usec - tm1.tv_usec);
     return t;
 }
-int test_one(int breakpoint, Scheme* sch,
+int test_one_user(int breakpoint, int sign_count, Scheme* sch,
 //        KeyPair *keypair, SignSession *signsess, VrfySession *vrfysess, Signature *sig,
         int bitlen_sec,
         int bitlen_clr, int bitlen_rec, int bitlen_red,
@@ -31,7 +31,6 @@ int test_one(int breakpoint, Scheme* sch,
 {
     int ret;
     clock_t c0,c1,c2,c3,c4,c5,c6,c7;
-    // struct tms t0,t1,t2,t3,t4,t5,t6,t7;
     uint32_t soff=0,son=0,voff=0,von=0;
 
     KeyPair *keypair = KeyPair_new(sch, bitlen_sec);
@@ -40,80 +39,88 @@ int test_one(int breakpoint, Scheme* sch,
     ret = KeyPair_gen(keypair);
     assert(ret == 0);
 
-    SignSession *signsess = SignSession_new(keypair, sch,
-            bitlen_clr, bitlen_rec, bitlen_red);
-    assert(signsess != NULL);
+    int warming=1;
+    for (++sign_count;sign_count>0;sign_count--){
+        SignSession *signsess = SignSession_new(keypair, sch,
+                bitlen_clr, bitlen_rec, bitlen_red);
+        assert(signsess != NULL);
 
-    VrfySession *vrfysess = VrfySession_new(keypair, sch,
-            bitlen_clr, bitlen_rec, bitlen_red);
-    assert(vrfysess != NULL);
+        VrfySession *vrfysess = VrfySession_new(keypair, sch,
+                bitlen_clr, bitlen_rec, bitlen_red);
+        assert(vrfysess != NULL);
 
-    Signature *sig = Signature_new(keypair, sch, bitlen_clr, bitlen_rec, bitlen_red);
-    assert(sig != NULL);
+        Signature *sig = Signature_new(keypair, sch, bitlen_clr, bitlen_rec, bitlen_red);
+        assert(sig != NULL);
 
-    int msglen = bitlen_rec/8 + bitlen_clr/8;
-    unsigned char *msg = malloc(msglen);
-    assert(msg != NULL);
+        int msglen = bitlen_rec/8 + bitlen_clr/8;
+        unsigned char *msg = malloc(msglen);
+        assert(msg != NULL);
 
-    //c0 = clock();
-    timerstart();
-    ret = Scheme_sign_offline(sch, keypair, signsess, sig);
-    timerstop();
-    soff=getus();
-    //c1 = clock();
+        //c0 = clock();
+        timerstart();
+        ret = Scheme_sign_offline(sch, keypair, signsess, sig);
+        timerstop();
+        soff=getus();
+        //c1 = clock();
 
-    assert(ret >= 0);
-    if (breakpoint==1) goto end;
+        assert(ret >= 0);
+        if (breakpoint==1) goto end;
 
-    //c2 = clock();
-    timerstart();
-    ret = Scheme_sign_online(sch, keypair, signsess, sig, msg, msglen);
-    timerstop();
-    son=getus();
-    //c3 = clock();
+        //c2 = clock();
+        timerstart();
+        ret = Scheme_sign_online(sch, keypair, signsess, sig, msg, msglen);
+        timerstop();
+        son=getus();
+        //c3 = clock();
 
-    assert(ret >= 0);
-    if (breakpoint==2) goto end;
+        assert(ret >= 0);
+        if (breakpoint==2) goto end;
 
-    //c4 = clock();
-    timerstart();
-    ret = Scheme_vrfy_offline(sch, keypair, vrfysess);
-    timerstop();
-    voff=getus();
-    //c5 = clock();
-    //
-    if (ret < 0) return -1;//assert(ret >= 0);
-    if (breakpoint==3) goto end;
+        //c4 = clock();
+        timerstart();
+        ret = Scheme_vrfy_offline(sch, keypair, vrfysess);
+        timerstop();
+        voff=getus();
+        //c5 = clock();
+        //
+        if (ret < 0) return -1;//assert(ret >= 0);
+        if (breakpoint==3) goto end;
 
-    //c6 = clock();
-    timerstart();
-    ret = Scheme_vrfy_online(sch, keypair, vrfysess, sig);
-    timerstop();
-    von=getus();
-    //c7 = clock();
+        //c6 = clock();
+        timerstart();
+        ret = Scheme_vrfy_online(sch, keypair, vrfysess, sig);
+        timerstop();
+        von=getus();
+        //c7 = clock();
 
-    if (ret < 0) return -1;//assert(ret >= 0);
+        if (ret < 0) return -1;//assert(ret >= 0);
 
-    /*
-    *s_tot += c1-c0+c3-c2;
-    *son_tot += c3-c2;
-    *von_tot += c5-c4;
-    *v_tot += c7-c6+c5-c4;
-    */
+        /*
+        *s_tot += c1-c0+c3-c2;
+        *son_tot += c3-c2;
+        *von_tot += c5-c4;
+        *v_tot += c7-c6+c5-c4;
+        */
 
-end:
+    end:
 
-    *s_tot += son+soff;
-    *son_tot += son;
-    *von_tot += von;
-    *v_tot += von+voff;
+        if (warming)
+            warming=0;
+        else
+        {
+            if (s_tot) *s_tot += son+soff;
+            if (son_tot) *son_tot += son;
+            if (von_tot) *von_tot += von;
+            if (v_tot) *v_tot += von+voff;
+        }
+
+        SignSession_free(signsess);
+        VrfySession_free(vrfysess);
+        Signature_free(sig);
+        free(msg);
+    }
 
     KeyPair_free(keypair);
-    SignSession_free(signsess);
-    VrfySession_free(vrfysess);
-    Signature_free(sig);
-    free(msg);
-
     return 0;
 }
 
@@ -155,7 +162,8 @@ static Scheme * get_scheme_by_id(int schid)
 
 
 int test(int verbose, int breakpoint, int schid, int bitlen_sec,
-    int bitlen_rec, int bitlen_red, int bitlen_clr, int sign_count,
+    int bitlen_rec, int bitlen_red, int bitlen_clr,
+    int sign_count, int user_count,
     clock_t *ret_sign_tot, clock_t *ret_sign_onl,
     clock_t *ret_vrfy_tot, clock_t *ret_vrfy_onl)
 {
@@ -188,7 +196,7 @@ int test(int verbose, int breakpoint, int schid, int bitlen_sec,
     clock_t vrfy_online_total = 0;
 
     /* Warm up */
-    ret = test_one(4, sch,
+    ret = test_one_user(4, 1, sch,
             //keypair, signsess, vrfysess, sig,
             bitlen_sec,
             bitlen_clr, bitlen_rec, bitlen_red,
@@ -203,21 +211,20 @@ int test(int verbose, int breakpoint, int schid, int bitlen_sec,
     vrfy_online_total = 0;
     
     int VB=8;
-    for (i=1; i<=sign_count; i++)
+    for (i=1; i<=user_count; i++)
     {
-        ret = test_one(breakpoint, sch,
+        test_one_user(breakpoint, sign_count, sch,
                 //keypair, signsess, vrfysess, sig,
                 bitlen_sec,
                 bitlen_clr, bitlen_rec, bitlen_red,
                 &sign_total, &sign_online_total,
                 &vrfy_total, &vrfy_online_total);
 
-        assert(ret >= 0);
-        if (verbose==2&&i==VB) {
-            printf("%d ",i);
-            fflush(stdout);
-            VB*=2;
-        }
+//        if (verbose==2&&i==VB) {
+//            printf("%d ",i);
+//            fflush(stdout);
+//            VB*=2;
+//        }
     }
     printf("\n");
 
