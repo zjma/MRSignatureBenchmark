@@ -56,51 +56,40 @@ int test_one_user(int breakpoint, int sign_count, Scheme* sch,
         unsigned char *msg = malloc(msglen);
         assert(msg != NULL);
 
-        //c0 = clock();
-        timerstart();
+        c0 = clock();
+//        timerstart();
         ret = Scheme_sign_offline(sch, keypair, signsess, sig);
-        timerstop();
-        soff=getus();
-        //c1 = clock();
+//        timerstop();soff=getus();
+        c1 = clock();soff=c1-c0;;
 
         assert(ret >= 0);
         if (breakpoint==1) goto end;
 
-        //c2 = clock();
-        timerstart();
+        c2 = clock();
+//        timerstart();
         ret = Scheme_sign_online(sch, keypair, signsess, sig, msg, msglen);
-        timerstop();
-        son=getus();
-        //c3 = clock();
+//        timerstop();son=getus();
+        c3 = clock();son=c3-c2;
 
         assert(ret >= 0);
         if (breakpoint==2) goto end;
 
-        //c4 = clock();
-        timerstart();
+        c4 = clock();
+//        timerstart();
         ret = Scheme_vrfy_offline(sch, keypair, vrfysess);
-        timerstop();
-        voff=getus();
-        //c5 = clock();
-        //
+//        timerstop();voff=getus();
+        c5 = clock();voff=c5-c4;
+
         if (ret < 0) return -1;//assert(ret >= 0);
         if (breakpoint==3) goto end;
 
-        //c6 = clock();
-        timerstart();
+        c6 = clock();
+//        timerstart();
         ret = Scheme_vrfy_online(sch, keypair, vrfysess, sig);
-        timerstop();
-        von=getus();
-        //c7 = clock();
+//        timerstop();von=getus();
+        c7 = clock();von=c7-c6;
 
         if (ret < 0) return -1;//assert(ret >= 0);
-
-        /*
-        *s_tot += c1-c0+c3-c2;
-        *son_tot += c3-c2;
-        *von_tot += c5-c4;
-        *v_tot += c7-c6+c5-c4;
-        */
 
     end:
 
@@ -196,7 +185,7 @@ int test(int verbose, int breakpoint, int schid, int bitlen_sec,
     clock_t vrfy_online_total = 0;
 
     /* Warm up */
-    ret = test_one_user(4, 1, sch,
+    ret = test_one_user(breakpoint, sign_count, sch,
             //keypair, signsess, vrfysess, sig,
             bitlen_sec,
             bitlen_clr, bitlen_rec, bitlen_red,
