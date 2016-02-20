@@ -17,6 +17,7 @@ struct ECOMG1_KeyPair
     EC_KEY*         eckey;
     const EC_GROUP* group;
     BIGNUM*         group_order;
+    BN_RECP_CTX*    recp;
     const BIGNUM*   sk;              // private key
     const EC_POINT* PK;              // public key
     int             bytelen_go;
@@ -95,6 +96,7 @@ void *ECOMG1_keypair_new(int sec)
 {
     BIGNUM *w = NULL;
     BIGNUM *group_order = NULL;
+    BN_RECP_CTX *recp=NULL;
     EC_POINT *h = NULL;
     EC_KEY *eckey = NULL;
 
@@ -131,8 +133,12 @@ void *ECOMG1_keypair_new(int sec)
     group_order = BN_new();
     if (group_order == NULL) goto err;
 
+    recp = BN_RECP_CTX_new();
+    if (recp == NULL) goto err;
+
     ret->eckey = eckey;
     ret->group_order = group_order;
+    ret->recp = recp;
     ret->sk = NULL;
     ret->PK = NULL;
     ret->bytelen_go = 0;
@@ -142,6 +148,7 @@ err:
     EC_KEY_free(eckey);
     BN_free(w);
     BN_free(group_order);
+    BN_RECP_CTX_free(recp);
     EC_POINT_free(h);
     return NULL;
 }
@@ -152,6 +159,7 @@ void ECOMG1_keypair_free(void *obj)
     ECOMG1_KeyPair *keypair = (ECOMG1_KeyPair*)obj;
     EC_KEY_free(keypair->eckey);
     BN_free(keypair->group_order);
+    BN_RECP_CTX_free(keypair->recp);
     free(keypair);
 }
 
@@ -171,6 +179,7 @@ int ECOMG1_keypair_gen(int sec, void *obj)
     const EC_GROUP *grp = EC_KEY_get0_group(keypair->eckey);
     keypair->group = grp;
     EC_GROUP_get_order(grp, keypair->group_order, bnctx);
+    BN_RECP_CTX_set(keypair->recp, keypair->group_order, bnctx);
     keypair->sk = EC_KEY_get0_private_key(keypair->eckey);
     keypair->PK = EC_KEY_get0_public_key(keypair->eckey);
     keypair->bytelen_go = BN_num_bytes(keypair->group_order);
@@ -413,8 +422,10 @@ int ECOMG1_sign_offline(int clr, int rec, int red,
     BN_bin2bn(sig->redun, bytelen_red, sess->e0);
 
     /* Compute re0w = r-e0*w */
-    ret = BN_mod_mul(sess->e0w, sess->e0, keys->sk,
-            keys->group_order, bnctx);
+//    ret = BN_mod_mul(sess->e0w, sess->e0, keys->sk,
+//            keys->group_order, bnctx);
+    ret = BN_mod_mul_reciprocal(sess->e0w, sess->e0, keys->sk,
+            keys->recp, bnctx);
     assert(ret==1);
 
     ret = BN_mod_sub(sess->re0w, sess->r, sess->e0w,
@@ -457,7 +468,8 @@ int ECOMG1_sign_online(int clr, int rec, int red,
     BN_bin2bn(sess->e1_bytes, keys->bytelen_go, sess->e1);
 
     /* Compute z=re0w - e1*w */
-    ret = BN_mod_mul(sess->e1w, sess->e1, keys->sk, keys->group_order, bnctx);
+//    ret = BN_mod_mul(sess->e1w, sess->e1, keys->sk, keys->group_order, bnctx);
+    ret = BN_mod_mul_reciprocal(sess->e1w, sess->e1, keys->sk, keys->recp, bnctx);
     assert(ret==1);
     ret = BN_mod_sub(sig->z, sess->re0w, sess->e1w, keys->group_order, bnctx);
     assert(ret==1);
