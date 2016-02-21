@@ -215,7 +215,6 @@ int test(int verbose, int breakpoint, int schid, int bitlen_sec,
 //            VB*=2;
 //        }
     }
-    printf("\n");
 
     *ret_sign_tot = sign_total;
     *ret_sign_onl = sign_online_total;
@@ -228,4 +227,13 @@ int test(int verbose, int breakpoint, int schid, int bitlen_sec,
 //    Signature_free(sig);
     free(sch);
     return 0;
+}
+
+
+const char* getnamebyschid(int schid)
+{
+    Scheme* sch=get_scheme_by_id(schid);
+    const char* ret=Scheme_get_name(sch);
+    Scheme_free(sch);
+    return ret;
 }

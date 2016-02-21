@@ -52,4 +52,6 @@ int test(int verbose, int breakpoint, int schid, int bitlen_sec,
     clock_t *ret_vrfy_tot, clock_t *ret_vrfy_onl);
 
 
+const char* getnamebyschid(int schid);
+
 #endif

@@ -63,6 +63,7 @@ int main(int argc, char **argv)
     int usrcount = 10;
     int verbose=1;
     int phase=4;
+    int simple=0;
     InitCrypt();
 
     for (i=1; i<argc; i++)
@@ -70,6 +71,10 @@ int main(int argc, char **argv)
         if (strcmp(argv[i], "-v")==0)
         {
             verbose=1;
+        }
+        else if (strcmp(argv[i], "-s")==0)
+        {
+            simple=1;
         }
         else if (strcmp(argv[i],"-vv")==0)
         {
@@ -167,7 +172,14 @@ int main(int argc, char **argv)
             sigcount, usrcount,
             &s_tot, &son_tot, &v_tot, &von_tot);
 
-    if (verbose) printf( "\nResults for %d requests:\n"
+    if (simple==1)
+    {
+        printf("%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,\n",
+                getnamebyschid(sch_id),
+                bitlen_sec,bitlen_clr,bitlen_rec,bitlen_red,usrcount,sigcount,
+                (int)son_tot,(int)s_tot,(int)von_tot,(int)v_tot);
+    }
+    else if (verbose) printf( "\nResults for %d requests:\n"
             "Sign tot:        %d\n"
             "Sign online tot: %d\n"
             "Vrfy tot:        %d\n"
