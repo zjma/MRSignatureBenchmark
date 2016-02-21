@@ -103,22 +103,22 @@ void *ECAO_keypair_new(int sec)
     switch(sec)
     {
         case 160:
-            eckey = EC_KEY_new_by_curve_name(NID_secp160r1);
+            eckey = EC_KEY_new_by_curve_name(CURVE160);
             break;
         case 192:
-            eckey = EC_KEY_new_by_curve_name(NID_secp192k1);
+            eckey = EC_KEY_new_by_curve_name(CURVE192);
             break;
         case 224:
-            eckey = EC_KEY_new_by_curve_name(NID_secp224r1);
+            eckey = EC_KEY_new_by_curve_name(CURVE224);
             break;
         case 256:
-            eckey = EC_KEY_new_by_curve_name(NID_secp256k1);
+            eckey = EC_KEY_new_by_curve_name(CURVE256);
             break;
         case 384:
-            eckey = EC_KEY_new_by_curve_name(NID_secp384r1);
+            eckey = EC_KEY_new_by_curve_name(CURVE384);
             break;
         case 521:
-            eckey = EC_KEY_new_by_curve_name(NID_secp521r1);
+            eckey = EC_KEY_new_by_curve_name(CURVE521);
             break;
         default:
             eckey = NULL;
