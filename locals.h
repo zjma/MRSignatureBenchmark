@@ -7,7 +7,7 @@ extern char *_Q[2];
 extern char *_P[2];
 extern char *_G[2];
 
-#define CURVE160 NID_secp160r1
+#define CURVE160 NID_secp160r2
 #define CURVE192 NID_secp192k1
 #define CURVE224 NID_secp224k1
 #define CURVE256 NID_secp256k1
