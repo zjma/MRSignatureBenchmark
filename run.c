@@ -9,7 +9,7 @@
 void print_usage(){
     printf(
 "\nUSAGE:\n"
-"   run     [-v] [-phase p] scheme [-sec n] [-clr lp] [-rec lr] [-red ld]\n"
+"   run     [-v] [-phase p] scheme [-sec n] [-clr lp -rec lr -red ld]\n"
 "           [-sigcount x] [-usrcount y]\n"
 "\n"
 "DESCRIPTION\n"
@@ -28,8 +28,8 @@ void print_usage(){
 "               n should be 160, 192, 224, 256, 384, or 521.(Default: 256).\n"
 "\n"
 "   -clr lp     length of plaintext part in bit.(Default: 0)\n\n"
-"   -rec lr     length of recoverable part in bit.(Default: 128).\n\n"
-"   -red ld     length of additional redundancy.(Default: 128)\n\n"
+"   -rec lr     length of recoverable part in bit.(Default: n/2).\n\n"
+"   -red ld     length of additional redundancy.(Default: n-n/2)\n\n"
 "   -usrcount y number of key-pairs to test.(Default: 10)\n\n"
 "   -sigcount x number of signatures to gen/verify per keypair.(Default: 100)\n\n"
 //"   -v          verbose mode.\n\n"
@@ -56,9 +56,9 @@ int main(int argc, char **argv)
     
     int sch_id = -1;
     int bitlen_sec = 256;
-    int bitlen_rec = 128;
-    int bitlen_red = 128;
-    int bitlen_clr = 0;
+    int bitlen_rec = -1;
+    int bitlen_red = -1;
+    int bitlen_clr = -1;
     int sigcount = 100;
     int usrcount = 10;
     int verbose=1;
@@ -142,7 +142,21 @@ int main(int argc, char **argv)
                 show_usage_and_exit_if(1);
         }
     }
+
     show_usage_and_exit_if(sch_id==-1);
+
+    if (bitlen_rec==-1&&bitlen_red==-1&&bitlen_clr==-1){
+        bitlen_clr=0;
+        bitlen_rec=bitlen_sec/2;
+        bitlen_red=bitlen_sec-bitlen_rec;
+    }
+
+    if (bitlen_rec==-1||bitlen_red==-1||bitlen_clr==-1)
+        show_usage_and_exit_if(1);
+
+    bitlen_clr-=bitlen_clr%8;
+    bitlen_rec-=bitlen_rec%8;
+    bitlen_red-=bitlen_red%8;
 
     clock_t s_tot = 0;
     clock_t son_tot = 0;
